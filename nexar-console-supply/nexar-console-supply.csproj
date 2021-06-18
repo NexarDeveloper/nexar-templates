@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <!--Minimum C# version required by generated code, e.g. for net472 projects-->
-    <LangVersion>8.0</LangVersion>
+    <!--C# 8.0+ is required by generated code-->
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
