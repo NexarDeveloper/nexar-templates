@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Nexar.Templates</id>
+    <version>0.0.1</version>
+    <description>
+Nexar GraphQL client templates.
+    </description>
+    <authors>Roman Kuzmin</authors>
+    <projectUrl>https://github.com/NexarDeveloper/nexar-templates</projectUrl>
+    <license type="expression">MIT</license>
+    <tags>Nexar GraphQL Template HotChocolate StrawberryShake</tags>
+    <packageTypes>
+      <packageType name="Template" />
+    </packageTypes>
+  </metadata>
+</package>

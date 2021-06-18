@@ -1,0 +1,7 @@
+﻿query Workspaces {
+  desWorkspaces {
+    id
+    url
+    name
+  }
+}
