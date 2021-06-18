@@ -1,5 +1,8 @@
 # Nexar.Templates
 
+[nexar.com]: https://nexar.com/
+[StrawberryShake]: https://github.com/ChilliCream/hotchocolate
+
 Nexar client dotnet templates.
 
 [nuget.org/packages/Nexar.Templates](https://www.nuget.org/packages/Nexar.Templates/)
@@ -18,14 +21,15 @@ The above command installs the following templates:
 
 C# console app running the query `desWorkspaces`.
 For getting the token, it starts the browser for signing in.
+You need your Altium Live credentials and have to be a member of at least one Altium 365 workspace.
 
     dotnet new nexar-console-design
 
 ### nexar-console-supply
 
 C# console app running the loop of queries `supSearchMpn`.
-For getting the token, it requires environment variables:
-`NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
+For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
+You need an application at [nexar.com]. Use this application client ID and secret for the variables.
 
     dotnet new nexar-console-supply
 
@@ -57,8 +61,6 @@ The subdirectory `GraphQL` contains the configuration, schema, and the directory
 The file `Queries.graphql` contains a sample query.
 
 `dotnet run` builds and runs the created project:
-
-[StrawberryShake]: https://github.com/ChilliCream/hotchocolate
 
 - The [StrawberryShake] processes queries in `Resources` and generates C# client code in `Generated`.
 - `Program.cs` is compiled with generated strongly typed query execution and results.
