@@ -68,3 +68,42 @@ The file `Queries.graphql` contains a sample query.
     - it starts the browser for signing in and getting the token
     - it creates and configures the Nexar client with the token
     - it runs the query and prints the results
+
+## Further development
+
+### Update query
+
+Modify or replace the sample query in GraphQL folder with your custom query.
+Build the project. StrawberryShake regenerates the query and result types.
+At this point `Program.cs` using the old query and results may not compile.
+Update its code to call the new query and process the new results.
+Build and run the updated program.
+
+### Update schema
+
+Nexar GraphQL API is being actively developed and its GraphQL schema is likely to change.
+Use the StrawberryShake tools for updating the schema file `GraphQL/schema.graphql`.
+
+You may install the tools globally:
+
+    dotnet tool install StrawberryShake.Tools -g
+
+Update the schema with global tools:
+
+    cd <project-path>/GraphQL
+    dotnet-graphql update
+
+Alternatively, install the tools locally (suitable for source control):
+
+    cd <repository-root>
+    dotnet new tool-manifest
+    dotnet tool install StrawberryShake.Tools
+
+Then on another machine you may restore local tools as:
+
+    dotnet tool restore
+
+Update the schema with local tools:
+
+    cd <project-path>/GraphQL
+    dotnet graphql update

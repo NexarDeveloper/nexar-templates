@@ -13,7 +13,7 @@ type Query {
   desWorkspaces(where: DesWorkspaceFilterInput): [DesWorkspace!]!
   desWorkspaceById(id: ID!): DesWorkspace
   desSharedWithMe: DesSharedWithMe!
-  desTeam(workspaceUrl: String! ids: [String!]!): DesTeam!
+  desTeam(workspaceUrl: String!): DesTeam!
   desUsers(workspaceUrl: String! ids: [String!]!): [DesUser]!
   desProjects(first: Int after: String last: Int before: String workspaceUrl: String! modifiedWorkflowAfter: DateTime where: DesProjectFilterInput): DesProjectConnection
   desProjectById(id: ID!): DesProject
@@ -72,6 +72,27 @@ type DesAuthorizationToken {
   token: String!
 }
 
+type DesDeleteWorkflowErrors {
+  id: String!
+  message: String!
+}
+
+type DesDeleteWorkflowsPayload {
+  errors: [DesDeleteWorkflowErrors!]!
+}
+
+type DesArea {
+  x: Float!
+  xMm2: Decimal!
+  xMils2: Decimal!
+}
+
+type DesAssemblyDrawings {
+  assemblyDrawingFiles: [DesDownloadableFile!]!
+  packageName: String
+  downloadUrl: String
+}
+
 type DesBom {
   assemblyVariantRevisionGuid: String!
   bomGuid: String!
@@ -97,32 +118,11 @@ type DesBomItemInstance {
   isFitted: Boolean!
 }
 
-type DesDeleteWorkflowErrors {
-  id: String!
-  message: String!
-}
-
-type DesDeleteWorkflowsPayload {
-  errors: [DesDeleteWorkflowErrors!]!
-}
-
-type DesArea {
-  raw: Float!
-  mm2: Decimal!
-  mils2: Decimal!
-}
-
-type DesAssemblyDrawings {
-  assemblyDrawingFiles: [DesDownloadableFile!]!
-  packageName: String
-  downloadUrl: String
-}
-
 type DesComment {
-  mentions: [DesMention!]!
-  guid: String!
-  text: String!
   createdBy: DesUser!
+  mentions: [DesMention!]!
+  commentId: String!
+  text: String!
 }
 
 type DesCommentContext {
@@ -152,15 +152,14 @@ type DesCommentNotificationData {
 }
 
 type DesCommentThread {
-  comments: [DesComment!]!
-  guid: String!
-  rawData: String!
-  assignedTo: String
-  createdAt: DateTime!
+  assignedTo: DesUser
   createdBy: DesUser!
+  modifiedBy: DesUser!
+  comments: [DesComment!]!
+  commentThreadId: String!
+  createdAt: DateTime!
   drawing: String
   modifiedAt: DateTime!
-  modifiedBy: DesUser!
   originalStateScreenshotUrl: String
   status: Int!
   threadNumber: Int!
@@ -169,8 +168,10 @@ type DesCommentThread {
 
 type DesComponent implements Node {
   id: ID!
+  parameters: [DesComponentParameter!]!
   symbols: [DesSymbol!]!
   footprints: [DesFootprint!]!
+  folder: DesFolder
   guid: String!
   deleted: Boolean!
   revisionStatus: Int!
@@ -200,6 +201,12 @@ type DesComponentEdge {
   cursor: String!
   "The item at the end of the edge."
   node: DesComponent!
+}
+
+type DesComponentParameter {
+  type: DesParameterType!
+  name: String!
+  value: String!
 }
 
 type DesCreateCommentPayload {
@@ -268,8 +275,14 @@ type DesDownloadableFile {
   downloadUrl: String!
 }
 
+type DesFolder {
+  name: String!
+  description: String!
+}
+
 type DesFootprint {
   pins: [DesPin!]!
+  folder: DesFolder
   guid: String!
   name: String!
   comment: String!
@@ -312,9 +325,18 @@ type DesLayerStack {
   layers: [DesLayer!]!
 }
 
+type DesLibrary {
+  components(first: Int after: String last: Int before: String): DesComponentConnection
+}
+
+type DesManufacturePackage {
+  variants: [DesReleaseVariant!]!
+  name: String!
+}
+
 type DesMention {
-  mentioned: DesUser!
-  mentionType: Int!
+  user: DesUser!
+  type: Int!
 }
 
 type DesModel3D {
@@ -401,6 +423,10 @@ type DesPickAndPlace {
   downloadUrl: String
 }
 
+type DesPin {
+  name: String!
+}
+
 type DesPosition2D {
   xMm: Decimal!
   yMm: Decimal!
@@ -446,6 +472,11 @@ type DesProjectEdge {
   node: DesProject!
 }
 
+type DesProjectParameter {
+  name: String!
+  value: String!
+}
+
 type DesRectangle {
   pos1: DesPosition2D!
   pos2: DesPosition2D!
@@ -479,6 +510,13 @@ type DesSchematic {
   units: Int!
 }
 
+type DesSharedWithMe {
+  projects: [DesProject!]!
+  commentThreads: [DesCommentThread!]!
+  manufacturePackages: [DesManufacturePackage!]!
+  name: String!
+}
+
 type DesSize {
   x: Int!
   xMm: Decimal!
@@ -494,8 +532,19 @@ type DesSize2D {
   yMils: Decimal!
 }
 
+type DesSupplierComponent {
+  guid: String!
+  deleted: Boolean!
+  itemGuid: String!
+  revisionStatus: Int!
+  name: String!
+  partNumber: String!
+  priority: Int!
+}
+
 type DesSymbol {
   pins: [DesPin!]!
+  folder: DesFolder
   guid: String!
   name: String!
   comment: String!
@@ -503,6 +552,10 @@ type DesSymbol {
   folderGuid: String!
   imageFullSizeUrl: String
   imageThumbnailUrl: String
+}
+
+type DesTeam {
+  users: [DesUser!]!
 }
 
 type DesTestPoints {
@@ -550,9 +603,14 @@ type DesWipVariant {
   schematics: [DesSchematic!]!
 }
 
+type DesWorkInProgress {
+  variants(where: DesWipVariantFilterInput): [DesWipVariant!]!
+}
+
 type DesWorkspace implements Node {
   id: ID!
   library: DesLibrary!
+  team: DesTeam!
   projects(modifiedWorkflowAfter: DateTime where: DesProjectFilterInput): [DesProject!]!
   workflowDefinitions(where: DesWorkflowDefinitionFilterInput): [DesWorkflowDefinition!]
   workflows(where: DesWorkflowFilterInput): [DesWorkflow!]
@@ -560,26 +618,11 @@ type DesWorkspace implements Node {
   url: String!
   workspaceId: String!
   description: String
-  team: DesTeam!
-}
-
-type DesHealth {
-  name: String!
 }
 
 type DesLaunchWorkflowPayload {
   id: String!
   status: Int!
-}
-
-type DesLibrary {
-  components(first: Int after: String last: Int before: String): DesComponentConnection
-  health: DesHealth!
-}
-
-type DesManufacturePackage {
-  variants: [DesReleaseVariant!]!
-  name: String!
 }
 
 type DesManufacturerComponent {
@@ -605,45 +648,10 @@ type DesPageInfo {
   endCursor: String
 }
 
-type DesPin {
-  name: String!
-}
-
-type DesProjectParameter {
-  name: String!
-  value: String!
-}
-
-type DesSharedWithMe {
-  projects: [DesProject!]!
-  commentThreads: [DesCommentThread!]!
-  manufacturePackages: [DesManufacturePackage!]!
-  name: String!
-}
-
-type DesSupplierComponent {
-  guid: String!
-  deleted: Boolean!
-  itemGuid: String!
-  revisionStatus: Int!
-  name: String!
-  partNumber: String!
-  priority: Int!
-}
-
-type DesTeam {
-  users(workspaceUrl: String! ids: [String!]!): [DesUser]!
-  name: String!
-}
-
 type DesVariable {
   name: String!
   valueType: String
   value: String
-}
-
-type DesWorkInProgress {
-  variants(where: DesWipVariantFilterInput): [DesWipVariant!]!
 }
 
 type DesWorkflow {
@@ -763,9 +771,9 @@ input DesDeleteWorkflowsInput {
 input DesAreaFilterInput {
   and: [DesAreaFilterInput!]
   or: [DesAreaFilterInput!]
-  raw: DesComparableDoubleOperationFilterInput
-  mm2: DesComparableDecimalOperationFilterInput
-  mils2: DesComparableDecimalOperationFilterInput
+  x: DesComparableDoubleOperationFilterInput
+  xMm2: DesComparableDecimalOperationFilterInput
+  xMils2: DesComparableDecimalOperationFilterInput
 }
 
 input DesCreateCommentInput {
@@ -900,7 +908,6 @@ input DesWorkspaceFilterInput {
   url: DesStringOperationFilterInput
   workspaceId: DesStringOperationFilterInput
   description: DesStringOperationFilterInput
-  team: DesTeamFilterInput
 }
 
 input DesLaunchWorkflowInput {
@@ -937,12 +944,6 @@ input DesStringOperationFilterInput {
   nstartsWith: String
   endsWith: String
   nendsWith: String
-}
-
-input DesTeamFilterInput {
-  and: [DesTeamFilterInput!]
-  or: [DesTeamFilterInput!]
-  name: DesStringOperationFilterInput
 }
 
 input DesUriFilterInput {
@@ -1035,6 +1036,27 @@ enum DesLayerKind {
 enum DesPadType {
   SMD
   FREE
+}
+
+enum DesParameterType {
+  NONE
+  TEXT
+  VOLTAGE
+  CURRENT
+  RESISTANCE
+  CONDUCTANCE
+  CAPACITANCE
+  CHARGE
+  INDUCTANCE
+  POWER
+  IMPEDANCE
+  FREQUENCY
+  TEMPERATURE
+  DECIBELS
+  PERCENT
+  LENGTH
+  MASS
+  TIME
 }
 
 enum DesPrimitiveShape {
