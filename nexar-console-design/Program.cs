@@ -9,8 +9,12 @@ class Program
 {
     static async Task Main()
     {
+        // assume Nexar client ID and secret are set as environment variables
+        var clientId = Environment.GetEnvironmentVariable("NEXAR_CLIENT_ID") ?? throw new InvalidOperationException("Please set environment 'NEXAR_CLIENT_ID'");
+        var clientSecret = Environment.GetEnvironmentVariable("NEXAR_CLIENT_SECRET") ?? throw new InvalidOperationException("Please set environment 'NEXAR_CLIENT_SECRET'");
+
         // sign in and get the token
-        var login = await LoginHelper.LoginAsync("https://identity.nexar.com");
+        var login = await LoginHelper.LoginAsync(clientId, clientSecret, new string[] { "user.access", "design.domain" });
         var username = login.Username;
         var token = login.AccessToken;
 
