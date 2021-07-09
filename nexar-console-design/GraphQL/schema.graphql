@@ -10,18 +10,24 @@ scalar Time
 
 type Query {
   node(id: ID!): Node
+  "Search for workspaces associated with this account."
   desWorkspaces(where: DesWorkspaceFilterInput): [DesWorkspace!]!
-  desWorkspaceById(id: ID!): DesWorkspace
+  "Search a specific workspace by its unique identifier."
+  desWorkspaceById("The node identifier for a workspace." id: ID!): DesWorkspace
   desSharedWithMe: DesSharedWithMe!
   desTeam(workspaceUrl: String!): DesTeam!
   desUsers(workspaceUrl: String! ids: [String!]!): [DesUser]!
-  desProjects(first: Int after: String last: Int before: String workspaceUrl: String! modifiedWorkflowAfter: DateTime where: DesProjectFilterInput): DesProjectConnection
-  desProjectById(id: ID!): DesProject
+  "Search projects within a workspace with results in paged groups."
+  desProjects(first: Int after: String last: Int before: String "The web address of a workspace." workspaceUrl: String! "Optional filter for projects with workflows completed after the specific `DateTime`." completedWorkflowAfter: DateTime where: DesProjectFilterInput): DesProjectConnection
+  "Search a specific project by its unique identifier."
+  desProjectById("The node identifier for a project." id: ID!): DesProject
   desDesignItemById(id: ID!): DesDesignItem
   desLibrary(workspaceUrl: String!): DesLibrary!
   desComponentById(id: ID!): DesComponent
-  desCommentThreads(projectId: ID!): [DesCommentThread!]!
-  desCommentThread(projectId: ID! threadId: String!): DesCommentThread
+  "Search for comment threads associated with a project."
+  desCommentThreads("The node identifier for a project (This is the project field named \"id\")." projectId: ID!): [DesCommentThread!]!
+  "Search for a specific comment thread associated with a project."
+  desCommentThread("The node identifier for a project (This is the project field named \"id\")." projectId: ID! "The reference identifier for a comment thread." threadId: String!): DesCommentThread
   desReleaseById(id: ID!): DesRelease
   desPackages: [DesManufacturePackage!]!
   desPackageById(id: ID!): DesManufacturePackage
@@ -84,43 +90,51 @@ type DesAssemblyDrawings {
   downloadUrl: String
 }
 
+"A Bill of Materials (BOM) contains a list of all of the parts needed for the assembly of a PCB."
 type DesBom {
-  assemblyVariantRevisionGuid: String!
-  bomId: String!
-  error: String!
-  isLocked: Boolean!
-  version: String!
-  bomItems: [DesBomItem]!
+  "The list of each unique part within the BOM."
+  bomItems: [DesBomItem!]!
 }
 
+"A Bill of Materials (BOM) item contains usage information for a unique component on the PCB."
 type DesBomItem {
+  "The detailed component infomation for this BOM item."
   component: DesComponent
-  bomItemId: String!
-  isDeleted: Boolean!
-  revisionStatus: Int!
+  "The total number of times this item is used."
   quantity: Decimal!
+  "The list of each instance of this BOM item."
   bomItemInstances: [DesBomItemInstance!]!
 }
 
+"A Bill of Materials (BOM) item instance contains infomation for one specific use case of the item."
 type DesBomItemInstance {
-  bomItemInstanceId: String!
-  isDeleted: Boolean!
-  revisionStatus: Int!
+  "The unique label for this item."
   designator: String!
+  "The variant use status for this item."
   isFitted: Boolean!
 }
 
+"A comment is one of a collection of remarks associated with a comment thread."
 type DesComment {
+  "The account information for who created this comment."
   createdBy: DesUser!
+  "The account information for those who are referenced for this comment."
   mentions: [DesMention!]!
+  "The reference identifier for this comment (use with desDeleteComment)."
   commentId: String!
+  "The content body of this comment."
   text: String!
 }
 
+"A comment context provides additional information about associations for a comment thread."
 type DesCommentContext {
+  "The reference identifier for the document associated with a comment thread."
   documentId: String
+  "The reference identifier for an object associated with a comment thread."
   objectId: String
+  "The area associated with a comment thread."
   area: DesRectangle!
+  "The release identifier associated with a comment thread."
   releaseId: String
 }
 
@@ -130,48 +144,65 @@ type DesCommentNotification {
 }
 
 type DesCommentNotificationData {
-  projectGuid: String!
+  projectId: String!
   documentId: String
   documentName: String
-  threadGuid: String!
+  commentThreadId: String!
   threadDate: String!
   threadData: String
   threadStatus: String
-  commentGuid: String!
+  commentId: String!
   commentAuthor: String
   commentDate: String!
   commentText: String
 }
 
+"A comment thread contains an initial remark associated with the design and a collection of replies."
 type DesCommentThread {
+  "The account information for the owner of any action or response to this comment thread."
   assignedTo: DesUser
+  "The account information for who created this comment thread."
   createdBy: DesUser!
+  "The account information for who most recently modified this comment thread."
   modifiedBy: DesUser!
+  "The list of replies associated with this comment thread."
   comments: [DesComment!]!
+  "The reference identifier for this comment thread (used by `desCreateComment` and `desDeleteComment`)."
   commentThreadId: String!
-  createdAt: DateTime!
-  drawing: String
-  modifiedAt: DateTime!
-  originalStateScreenshotUrl: String
   status: Int!
+  "The `DateTime` for the creation of this comment thread."
+  createdAt: DateTime!
+  "The `DateTime` for the most recent modification of this comment thread."
+  modifiedAt: DateTime!
+  "The web address to download the screenshot associated with the creation of this comment thread."
+  originalStateScreenshotUrl: String
+  "The sequence number of this comment thread."
   threadNumber: Int!
+  "The information about properties related to this comment thread."
   context: DesCommentContext!
 }
 
+"A component contains the parametric details of a part attached the PCB."
 type DesComponent implements Node {
+  "The node identifier for this component (used by `desComponentById`)."
   id: ID!
-  componentId: String!
-  isDeleted: Boolean!
-  revisionStatus: Int!
+  "The list of the part choices associated with this component."
+  manufacturerComponents: [DesManufacturerComponent!]!
+  folder: DesFolder
+  "The additional information for this component."
   comment: String!
+  "The summary of function or other performance details for this component."
   description: String!
-  folderGuid: String!
+  "The library label for this component."
   name: String!
   revision: String!
-  manufacturerComponents: [DesManufacturerComponent!]
+  "The list of the parameters describing this component."
   parameters: [DesComponentParameter!]!
+  "The list of the symbols used for this component."
   symbols: [DesSymbol!]!
+  "The list of the footprints used this component."
   footprints: [DesFootprint!]!
+  model3D: DesModel3D
 }
 
 "A connection to a list of items."
@@ -200,13 +231,13 @@ type DesComponentParameter {
 }
 
 type DesCreateCommentPayload {
-  guid: String!
+  commentId: String!
   errors: [DesPayloadError!]!
 }
 
 type DesCreateCommentThreadPayload {
-  threadGuid: String!
-  commentGuid: String!
+  commentThreadId: String!
+  commentId: String!
   errors: [DesPayloadError!]!
 }
 
@@ -227,8 +258,11 @@ type DesDeleteWorkflowsPayload {
   errors: [DesDeleteWorkflowsError!]!
 }
 
+"A design manages all of the schematic, PCB, and BOM content for a project."
 type DesDesign {
+  "The list of published versions of the design grouped into pages."
   releases(first: Int after: String last: Int before: String where: DesReleaseFilterInput): DesReleaseConnection
+  "The most recent version of the design."
   workInProgress: DesWorkInProgress!
 }
 
@@ -237,21 +271,32 @@ type DesDesignExchange {
   downloadableFile: DesDownloadableFile!
 }
 
+"A design item is a specific instance of a part used in the design."
 type DesDesignItem implements Node {
+  "The node identifier for this project (used by `DesDesignItemById`)."
   id: ID!
+  "The detailed component infomation for this design item."
   component: DesComponent
-  model3D: DesModel3D
+  "The list of all comment threads related to this design item."
   commentThreads: [DesCommentThread!]
-  designItemId: String!
+  "The unique label for this design item."
   designator: String!
-  comment: String!
-  footprintName: String!
+  "The summary of function or other performance details for this design item."
   description: String!
-  position: DesPosition2D!
-  area: DesRectangle
+  "The additional information for this design item."
+  comment: String!
+  "The layer(side) placement for this design item."
   layer: DesLayer
+  "The planar location for this design item."
+  position: DesPosition2D!
+  "The planar boundary for this design item."
+  area: DesRectangle
+  footprintName: String!
+  "The list of connection targets for this design item."
   pads: [DesPad!]!
+  "The list of multiple layer connections for this design item."
   vias: [DesVia!]!
+  "The list of conductor segments for this design item."
   tracks: [DesTrack!]!
 }
 
@@ -295,7 +340,6 @@ type DesFootprint {
   name: String!
   comment: String!
   description: String!
-  folderGuid: String!
 }
 
 type DesGerber {
@@ -322,18 +366,20 @@ type DesLaunchWorkflowPayload {
 }
 
 type DesLayer {
-  id: Int!
   name: String!
-  searchName: String!
-  color: String!
-  type: DesLayerKind!
-  stackIndex: Int!
+  thickness: DesSize
+  dielectricConstant: Decimal
+  copperWeight: DesWeight
+  material: String
   nets: [DesNet!]!
+  layerType: DesLayerType!
+  layerProperties: [DesLayerProperty!]!
 }
 
-type DesLayerStack {
+type DesLayerProperty {
   name: String!
-  layers: [DesLayer!]!
+  text: String!
+  size: DesSize
 }
 
 type DesLibrary {
@@ -346,10 +392,6 @@ type DesManufacturePackage {
 }
 
 type DesManufacturerComponent {
-  guid: String!
-  deleted: Boolean!
-  itemGuid: String!
-  revisionStatus: Int!
   name: String!
   partNumber: String!
   priority: Int!
@@ -404,21 +446,30 @@ type DesPayloadError {
   message: String!
 }
 
+"A PCB contains design details of the physical product."
 type DesPcb {
-  layerStack: DesLayerStack!
-  designItems(first: Int after: String last: Int before: String designators: [String!]): DesDesignItemConnection
-  nets(names: [String!]): [DesNet!]!
+  "The details of the layer structure of this PCB."
+  layerStack: DesStackup
+  "The list of all part instances used in this PCB grouped into pages."
+  designItems(first: Int after: String last: Int before: String "An optional array of designators to search." designators: [String!]): DesDesignItemConnection
+  "The list of all electrically connected regions in this PCB."
+  nets("An optional array of names to search." names: [String!]): [DesNet!]!
+  "The list of all part connection targets in this PCB."
   pads: [DesPad!]!
+  "The list of all conductor segments in this PCB."
   tracks: [DesTrack!]!
+  "The list of all multiple layer connections in this PCB."
   vias: [DesVia!]!
+  "The list of all comment threads related to this PCB."
   commentThreads: [DesCommentThread!]!
-  projectGuid: String!
-  fileName: String!
+  "The reference identifier for this PCB."
   documentId: String!
-  order: Int!
-  origin: DesPosition2D!
-  area: DesArea!
+  "The dimensions of the PCB outline."
   size: DesSize2D!
+  "The total area contained by the PCB outline."
+  area: DesArea!
+  "The location of the coordinate system origin relative to ???."
+  origin: DesPosition2D!
 }
 
 type DesPcbAssembly {
@@ -458,20 +509,35 @@ type DesPosition2D {
   y: Int!
 }
 
+"A project manages all development stages of the PCB\/PCA product lifecycle."
 type DesProject implements Node {
+  "The node identifier for this project (used by `DesProjectById`)."
   id: ID!
+  "The account information for who created this project."
   createdBy: DesUser
+  "The account information for who last modified this project."
   updatedBy: DesUser
-  parameters(names: [String!]): [DesProjectParameter!]!
+  "The list of the parameters describing this project."
+  parameters("An optional list of parameter names to search." names: [String!]): [DesProjectParameter!]!
+  "The web address to download a preview image for this project."
   previewUrl: String!
-  workflows(isClosed: Boolean! = false modifiedAfter: DateTime where: DesWorkflowFilterInput): [DesWorkflow!]
-  modifiedWorkflowAt: DateTime
+  "The list of workflows associated with this project."
+  workflows("An option to search workflows that have been completed." isClosed: Boolean! = false "An option to search workflows that have been modified after a specific `DateTime`." modifiedAfter: DateTime where: DesWorkflowFilterInput): [DesWorkflow!]
+  "The `DateTime` of the most recent workflow completion associated with this project."
+  completedWorkflowAt: DateTime
+  "The unique address of this project on the web."
   url: Url!
+  "The reference identifier for this project."
   projectId: String!
+  "The assigned name for this Project."
   name: String
+  "The summary of this project content or purpose."
   description: String
+  "The `DateTime` when this project was created."
   createdAt: DateTime
+  "The `DateTime` when this project was last modified."
   updatedAt: DateTime
+  "The detailed design information for this project."
   design: DesDesign!
 }
 
@@ -504,11 +570,16 @@ type DesRectangle {
   pos2: DesPosition2D!
 }
 
+"A release is a published version of a design with additional generated files for manufacturing."
 type DesRelease {
+  "The list of variations contained in this release."
   variants(where: DesReleaseVariantFilterInput): [DesReleaseVariant!]!
   manufacturePackages: [DesManufacturePackage!]!
+  "The `DateTime` when this release was created."
   createdAt: DateTime!
+  "The summary of this release content or purpose."
   description: String!
+  "The reference identifier for this release."
   releaseId: String!
 }
 
@@ -531,23 +602,33 @@ type DesReleaseEdge {
   node: DesRelease!
 }
 
+"A variant contains a specific configuration of a base design."
 type DesReleaseVariant {
+  "The data needed for assembly of this published design variant."
   pcbAssembly: DesPcbAssembly
+  "The data needed for fabrication of this published design variant."
   pcbFabrication: DesPcbFabrication
+  "The Bill of Materials (BOM) for this published design variant."
   bom: DesBom
+  "The PCB document for this design variant."
   pcb: DesPcb
-  uniqueId: String!
+  "The descriptive label for this design variant."
   name: String!
+  "The list of schematic documents for this design variant."
   schematics: [DesSchematic!]!
 }
 
+"A schematic contains the design parts and logical connections."
 type DesSchematic {
-  designItems: [DesDesignItem!]!
-  nets: [DesNet!]!
+  "The list of all part instances used in this schematic grouped into pages."
+  designItems(first: Int after: String last: Int before: String): DesDesignItemConnection
+  "The list of all logical part connections in this schematic."
+  nets("An optional array of names to search." names: [String!]): [DesNet!]!
+  "The list of all comment threads related to this schematic."
   commentThreads: [DesCommentThread!]!
+  "The reference identifier for this schematic."
   documentId: String!
   parentIds: [String!]!
-  fileName: String!
   units: Int!
 }
 
@@ -559,7 +640,7 @@ type DesSharedWithMe {
 }
 
 type DesSize {
-  x: Int!
+  x: Decimal!
   xMm: Decimal!
   xMils: Decimal!
 }
@@ -573,11 +654,21 @@ type DesSize2D {
   yMils: Decimal!
 }
 
+type DesStack {
+  name: String!
+  layers: [DesLayer!]!
+}
+
+type DesStackup {
+  stackupType: String!
+  layerTypes: [DesLayerType!]!
+  roughnessType: String!
+  roughnessFactorSR: String!
+  roughnessFactorRF: String!
+  stacks: [DesStack!]!
+}
+
 type DesSupplierComponent {
-  guid: String!
-  deleted: Boolean!
-  itemGuid: String!
-  revisionStatus: Int!
   name: String!
   partNumber: String!
   priority: Int!
@@ -593,7 +684,6 @@ type DesSymbol {
   name: String!
   comment: String!
   description: String!
-  folderGuid: String!
 }
 
 type DesTeam {
@@ -618,11 +708,16 @@ type DesUpdateCommentPayload {
   errors: [DesPayloadError!]!
 }
 
+"A user information contains the identifier and nullable extra fields."
 type DesUser {
+  "The internal user ID."
   userId: String!
-  userName: String!
-  email: String!
-  fullName: String!
+  "Null if the user no longer exists."
+  userName: String
+  "Null if the user no longer exists."
+  email: String
+  "Null if the user no longer exists."
+  fullName: String
 }
 
 type DesVia {
@@ -637,64 +732,99 @@ type DesVia {
   position: DesPosition2D!
 }
 
+type DesWeight {
+  x: Decimal!
+  gram: Decimal!
+  ounce: Decimal!
+}
+
+"A variant contains a specific configuration of a base design."
 type DesWipVariant {
   designExchange: DesDesignExchange
+  "The Bill of Materials (BOM) for this design variant."
   bom: DesBom
+  "The PCB document for this design variant."
   pcb: DesPcb
-  uniqueId: String!
+  "The descriptive label for this design variant."
   name: String!
+  "The list of schematic documents for this design variant."
   schematics: [DesSchematic!]!
 }
 
+"The most recent version of a design."
 type DesWorkInProgress {
+  "The list of variations contained in this design."
   variants(where: DesWipVariantFilterInput): [DesWipVariant!]!
 }
 
+"A workflow manages the execution of a logical sequence of tasks."
 type DesWorkflow {
-  variables(names: [String!]): [DesWorkflowVariable!]!
+  "The list of variables defined for this workflow."
+  variables("An optional list of parameter names to search." names: [String!]): [DesWorkflowVariable!]!
+  "The `DateTime` for the most recent changes for this workflow."
   modifiedAt: DateTime!
-  id: String!
-  isSuspended: Boolean!
+  "The reference identifier for this workflow."
+  workflowId: String!
+  "The name of the active task(s) for this workflow."
   state: String
+  "The account information for the owner of any action or response needed for this workflow."
   assignee: String!
+  "The account information for who created this workflow."
   createdBy: String!
+  "The `DateTime` for the creation of this workflow."
   createdAt: DateTime!
+  "The `DateTime` for the completion of this workflow."
   endedAt: DateTime
-  businessKey: String!
+  "The label for this workflow."
+  name: String!
+  "The reference identifier for definition of this workflow."
   processDefinitionId: String!
+  "The label for the definition of this workflow."
   processDefinitionName: String!
-  versionTag: String!
+  "The current condition of this workflow."
   status: String!
 }
 
+"A workflow definition contains a logical sequence of tasks."
 type DesWorkflowDefinition {
+  "The list of variables need to launch this workflow definition."
   variables: [DesWorkflowVariable!]!
-  id: String!
+  "The reference identifier for this workflow definition."
+  workflowDefinitionId: String!
+  "The label for this workflow definition."
   name: String!
-  version: Int!
-  latestVersion: Boolean!
-  isSuspended: Boolean!
-  state: String!
+  "The account information for who created this workflow definition."
   createdBy: String!
+  "The `DateTime` for the creation of this workflow definition."
   createdAt: DateTime!
 }
 
 type DesWorkflowVariable {
   valueType: String
+  constraint: String
   name: String!
   value: String!
 }
 
+"A workspace provides a flexible and secure method for managing design, manufacturing and supply content."
 type DesWorkspace implements Node {
+  "The node identifier for the workspace (used by `DesWorkspaceById`)."
   id: ID!
+  "The resource managing components for this workspace."
   library: DesLibrary!
+  "The list of members authorized for this workspace."
   team: DesTeam!
-  projects(modifiedWorkflowAfter: DateTime where: DesProjectFilterInput): [DesProject!]!
+  "The list of projects managed in this workspace."
+  projects("An option to search projects with workflows that have been completed after a specific `DateTime`." completedWorkflowAfter: DateTime where: DesProjectFilterInput): [DesProject!]!
+  "The list of workflow definitions in this workspace."
   workflowDefinitions(where: DesWorkflowDefinitionFilterInput): [DesWorkflowDefinition!]
+  "The list of workflows in this workspace."
   workflows(where: DesWorkflowFilterInput): [DesWorkflow!]
+  "The descriptive label for this workspace."
   name: String!
+  "The web address of this workspace."
   url: String!
-  workspaceId: String!
+  "The summary of this workspace content or purpose."
   description: String
 }
 
@@ -730,36 +860,6 @@ input DesComparableDateTimeOperationFilterInput {
   nlte: DateTime
 }
 
-input DesComparableDecimalOperationFilterInput {
-  eq: Decimal
-  neq: Decimal
-  in: [Decimal!]
-  nin: [Decimal!]
-  gt: Decimal
-  ngt: Decimal
-  gte: Decimal
-  ngte: Decimal
-  lt: Decimal
-  nlt: Decimal
-  lte: Decimal
-  nlte: Decimal
-}
-
-input DesComparableDoubleOperationFilterInput {
-  eq: Float
-  neq: Float
-  in: [Float!]
-  nin: [Float!]
-  gt: Float
-  ngt: Float
-  gte: Float
-  ngte: Float
-  lt: Float
-  nlt: Float
-  lte: Float
-  nlte: Float
-}
-
 input DesComparableInt32OperationFilterInput {
   eq: Int
   neq: Int
@@ -790,17 +890,9 @@ input DesComparableNullableOfDateTimeOperationFilterInput {
   nlte: DateTime
 }
 
-input DesAreaFilterInput {
-  and: [DesAreaFilterInput!]
-  or: [DesAreaFilterInput!]
-  x: DesComparableDoubleOperationFilterInput
-  xMm2: DesComparableDecimalOperationFilterInput
-  xMils2: DesComparableDecimalOperationFilterInput
-}
-
 input DesCreateCommentInput {
   entityId: ID!
-  threadGuid: String!
+  commentThreadId: String!
   text: String!
 }
 
@@ -815,13 +907,13 @@ input DesCreateCommentThreadInput {
 
 input DesDeleteCommentInput {
   entityId: ID!
-  threadGuid: String!
-  commentGuid: String!
+  commentThreadId: String!
+  commentId: String!
 }
 
 input DesDeleteCommentThreadInput {
   entityId: ID!
-  threadGuid: String!
+  commentThreadId: String!
 }
 
 input DesDeleteWorkflowsInput {
@@ -831,9 +923,9 @@ input DesDeleteWorkflowsInput {
 
 input DesLaunchWorkflowInput {
   workspaceUrl: String!
-  workflowId: String!
-  title: String
-  vars: [DesWorkflowVariableInput!]!
+  workflowDefinitionId: String!
+  name: String
+  variables: [DesWorkflowVariableInput!]!
 }
 
 input DesOnCommentUpdatedInput {
@@ -841,38 +933,26 @@ input DesOnCommentUpdatedInput {
   token: String!
 }
 
-input DesPcbFilterInput {
-  and: [DesPcbFilterInput!]
-  or: [DesPcbFilterInput!]
-  projectGuid: DesStringOperationFilterInput
-  fileName: DesStringOperationFilterInput
-  documentId: DesStringOperationFilterInput
-  order: DesComparableInt32OperationFilterInput
-  origin: DesPosition2DFilterInput
-  area: DesAreaFilterInput
-  size: DesSize2DFilterInput
-}
-
-input DesPosition2DFilterInput {
-  and: [DesPosition2DFilterInput!]
-  or: [DesPosition2DFilterInput!]
-  x: DesComparableInt32OperationFilterInput
-  y: DesComparableInt32OperationFilterInput
-}
-
 input DesPosition2DInput {
   x: Int!
   y: Int!
 }
 
+"A project manages all development stages of the PCB\/PCA product lifecycle."
 input DesProjectFilterInput {
   and: [DesProjectFilterInput!]
   or: [DesProjectFilterInput!]
+  "The unique address of this project on the web."
   url: DesUriFilterInput
+  "The reference identifier for this project."
   projectId: DesStringOperationFilterInput
+  "The assigned name for this Project."
   name: DesStringOperationFilterInput
+  "The summary of this project content or purpose."
   description: DesStringOperationFilterInput
+  "The `DateTime` when this project was created."
   createdAt: DesComparableNullableOfDateTimeOperationFilterInput
+  "The `DateTime` when this project was last modified."
   updatedAt: DesComparableNullableOfDateTimeOperationFilterInput
 }
 
@@ -881,102 +961,113 @@ input DesRectangleInput {
   pos2: DesPosition2DInput!
 }
 
+"A release is a published version of a design with additional generated files for manufacturing."
 input DesReleaseFilterInput {
   and: [DesReleaseFilterInput!]
   or: [DesReleaseFilterInput!]
+  "The `DateTime` when this release was created."
   createdAt: DesComparableDateTimeOperationFilterInput
+  "The summary of this release content or purpose."
   description: DesStringOperationFilterInput
+  "The reference identifier for this release."
   releaseId: DesStringOperationFilterInput
 }
 
+"A variant contains a specific configuration of a base design."
 input DesReleaseVariantFilterInput {
   and: [DesReleaseVariantFilterInput!]
   or: [DesReleaseVariantFilterInput!]
-  uniqueId: DesStringOperationFilterInput
+  "The descriptive label for this design variant."
   name: DesStringOperationFilterInput
-  pcb: DesPcbFilterInput
+  "The list of schematic documents for this design variant."
   schematics: DesListFilterInputTypeOfDesSchematicFilterInput
 }
 
+"A schematic contains the design parts and logical connections."
 input DesSchematicFilterInput {
   and: [DesSchematicFilterInput!]
   or: [DesSchematicFilterInput!]
+  "The reference identifier for this schematic."
   documentId: DesStringOperationFilterInput
   parentIds: DesListStringOperationFilterInput
-  fileName: DesStringOperationFilterInput
   units: DesComparableInt32OperationFilterInput
-}
-
-input DesSize2DFilterInput {
-  and: [DesSize2DFilterInput!]
-  or: [DesSize2DFilterInput!]
-  x: DesComparableInt32OperationFilterInput
-  y: DesComparableInt32OperationFilterInput
-  xMm: DesComparableDecimalOperationFilterInput
-  xMils: DesComparableDecimalOperationFilterInput
-  yMm: DesComparableDecimalOperationFilterInput
-  yMils: DesComparableDecimalOperationFilterInput
 }
 
 input DesUpdateCommentInput {
   entityId: ID!
-  threadGuid: String!
-  commentGuid: String!
+  commentThreadId: String!
+  commentId: String!
   text: String!
 }
 
+"A variant contains a specific configuration of a base design."
 input DesWipVariantFilterInput {
   and: [DesWipVariantFilterInput!]
   or: [DesWipVariantFilterInput!]
-  uniqueId: DesStringOperationFilterInput
+  "The descriptive label for this design variant."
   name: DesStringOperationFilterInput
-  pcb: DesPcbFilterInput
+  "The list of schematic documents for this design variant."
   schematics: DesListFilterInputTypeOfDesSchematicFilterInput
 }
 
+"A workflow definition contains a logical sequence of tasks."
 input DesWorkflowDefinitionFilterInput {
   and: [DesWorkflowDefinitionFilterInput!]
   or: [DesWorkflowDefinitionFilterInput!]
-  id: DesStringOperationFilterInput
+  "The reference identifier for this workflow definition."
+  workflowDefinitionId: DesStringOperationFilterInput
+  "The label for this workflow definition."
   name: DesStringOperationFilterInput
-  version: DesComparableInt32OperationFilterInput
-  latestVersion: DesBooleanOperationFilterInput
-  isSuspended: DesBooleanOperationFilterInput
-  state: DesStringOperationFilterInput
+  "The account information for who created this workflow definition."
   createdBy: DesStringOperationFilterInput
+  "The `DateTime` for the creation of this workflow definition."
   createdAt: DesComparableDateTimeOperationFilterInput
 }
 
+"A workflow manages the execution of a logical sequence of tasks."
 input DesWorkflowFilterInput {
   and: [DesWorkflowFilterInput!]
   or: [DesWorkflowFilterInput!]
-  id: DesStringOperationFilterInput
-  isSuspended: DesBooleanOperationFilterInput
+  "The reference identifier for this workflow."
+  workflowId: DesStringOperationFilterInput
+  "The name of the active task(s) for this workflow."
   state: DesStringOperationFilterInput
+  "The account information for the owner of any action or response needed for this workflow."
   assignee: DesStringOperationFilterInput
+  "The account information for who created this workflow."
   createdBy: DesStringOperationFilterInput
+  "The `DateTime` for the creation of this workflow."
   createdAt: DesComparableDateTimeOperationFilterInput
+  "The `DateTime` for the completion of this workflow."
   endedAt: DesComparableNullableOfDateTimeOperationFilterInput
-  businessKey: DesStringOperationFilterInput
+  "The label for this workflow."
+  name: DesStringOperationFilterInput
+  "The reference identifier for definition of this workflow."
   processDefinitionId: DesStringOperationFilterInput
+  "The label for the definition of this workflow."
   processDefinitionName: DesStringOperationFilterInput
-  versionTag: DesStringOperationFilterInput
+  "The current condition of this workflow."
   status: DesStringOperationFilterInput
 }
 
 input DesWorkflowVariableInput {
   valueType: String
+  constraint: String
   name: String!
   value: String!
 }
 
+"A workspace provides a flexible and secure method for managing design, manufacturing and supply content."
 input DesWorkspaceFilterInput {
   and: [DesWorkspaceFilterInput!]
   or: [DesWorkspaceFilterInput!]
+  "The node identifier for the workspace (used by `DesWorkspaceById`)."
   id: DesStringOperationFilterInput
+  "The descriptive label for this workspace."
   name: DesStringOperationFilterInput
+  "The web address of this workspace."
   url: DesStringOperationFilterInput
-  workspaceId: DesStringOperationFilterInput
+  "The summary of this workspace content or purpose."
   description: DesStringOperationFilterInput
 }
 
@@ -1043,21 +1134,29 @@ input DesUriHostNameTypeOperationFilterInput {
   nin: [DesUriHostNameType!]
 }
 
-enum DesLayerKind {
-  MECHANICAL
-  AUGMENTATION
+enum DesLayerType {
+  ABSTRACT
+  UNKNOWN
+  PHYSICAL
   DIELECTRIC
-  MULTI_LAYER
-  TOP_LAYER
-  MECHANICAL_TOP
-  BOTTOM_LAYER
-  MECHANICAL_BOTTOM
-  TOP_SOLDER
-  BOTTOM_SOLDER
-  TOP_OVERLAY
-  BOTTOM_OVERLAY
-  TOP_PASTE
-  BOTTOM_PASTE
+  OVERLAY
+  SOLDER_MASK
+  BIKINI_COVERLAY
+  PASTE_MASK
+  MECHANICAL
+  FOIL
+  PLANE
+  SIGNAL
+  SURFACE_FINISH
+  CORE
+  PREPREG
+  PLATING
+  ADHESIVE
+  STIFFENER
+  MISC
+  PE_LAYER
+  CONDUCTIVE
+  NON_CONDUCTIVE
 }
 
 enum DesPadType {
