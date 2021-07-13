@@ -37,6 +37,15 @@ Use this application client ID and secret for the variables.
 
     dotnet new nexar-console-supply
 
+### nexar-console-net4x
+
+This template is for .NET Framework apps. Note that net472+ is recommended and net461 is the minimum possible.
+The reason is that the Strawberry Shake generated code is netstandard only.
+That is why in this template there are two projects:
+`Nexar.Client` (netstandard2.0) and the main `Program` (net472) which references `Nexar.Client`.
+
+    dotnet new nexar-console-net4x
+
 ## Uninstall
 
 In order to uninstall the templates, invoke:

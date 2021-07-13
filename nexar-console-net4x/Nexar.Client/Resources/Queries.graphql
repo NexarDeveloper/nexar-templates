@@ -1,0 +1,13 @@
+﻿query SearchMpn($mpn: String!) {
+  supSearchMpn(q: $mpn) {
+    results {
+      part {
+        mpn
+        shortDescription
+        manufacturer {
+          name
+        }
+      }
+    }
+  }
+}
