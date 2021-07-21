@@ -3,8 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <!--C# 8.0+ is required by generated code-->
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +10,10 @@
     <PackageReference Include="Nexar.Client.Login" Version="0.2.2" />
     <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.3.0" />
     <PackageReference Include="StrawberryShake.Transport.Http" Version="11.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nexar.Client\Nexar.Client.csproj" />
   </ItemGroup>
 
 </Project>

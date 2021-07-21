@@ -62,7 +62,7 @@ type Mutation {
   desCreateCommentThread(input: DesCreateCommentThreadInput!): DesCreateCommentThreadPayload!
   desDeleteCommentThread(input: DesDeleteCommentThreadInput!): DesDeleteCommentThreadPayload!
   desLaunchWorkflow(input: DesLaunchWorkflowInput!): DesLaunchWorkflowPayload!
-  desDeleteWorkflows(input: DesDeleteWorkflowsInput!): DesDeleteWorkflowsPayload!
+  desTerminateWorkflows(input: DesTerminateWorkflowsInput!): DesTerminateWorkflowsPayload!
 }
 
 type Subscription {
@@ -247,15 +247,6 @@ type DesDeleteCommentPayload {
 
 type DesDeleteCommentThreadPayload {
   errors: [DesPayloadError!]!
-}
-
-type DesDeleteWorkflowsError {
-  id: String!
-  message: String!
-}
-
-type DesDeleteWorkflowsPayload {
-  errors: [DesDeleteWorkflowsError!]!
 }
 
 "A design manages all of the schematic, PCB, and BOM content for a project."
@@ -511,7 +502,7 @@ type DesPosition2D {
 
 "A project manages all development stages of the PCB\/PCA product lifecycle."
 type DesProject implements Node {
-  "The node identifier for this project (used by `DesProjectById`)."
+  "The node identifier for this project (used by `desProjectById`)."
   id: ID!
   "The account information for who created this project."
   createdBy: DesUser
@@ -525,11 +516,11 @@ type DesProject implements Node {
   workflows("An option to search workflows that have been completed." isClosed: Boolean! = false "An option to search workflows that have been modified after a specific `DateTime`." modifiedAfter: DateTime where: DesWorkflowFilterInput): [DesWorkflow!]
   "The `DateTime` of the most recent workflow completion associated with this project."
   completedWorkflowAt: DateTime
-  "The unique address of this project on the web."
+  "The Altium 365 web address."
   url: Url!
   "The reference identifier for this project."
   projectId: String!
-  "The assigned name for this Project."
+  "The assigned name for this project."
   name: String
   "The summary of this project content or purpose."
   description: String
@@ -688,6 +679,15 @@ type DesSymbol {
 
 type DesTeam {
   users: [DesUser!]!
+}
+
+type DesTerminateWorkflowsError {
+  id: String!
+  message: String!
+}
+
+type DesTerminateWorkflowsPayload {
+  errors: [DesTerminateWorkflowsError!]!
 }
 
 type DesTestPoints {
@@ -916,11 +916,6 @@ input DesDeleteCommentThreadInput {
   commentThreadId: String!
 }
 
-input DesDeleteWorkflowsInput {
-  workspaceUrl: String!
-  workflowIds: [String!]!
-}
-
 input DesLaunchWorkflowInput {
   workspaceUrl: String!
   workflowDefinitionId: String!
@@ -942,11 +937,11 @@ input DesPosition2DInput {
 input DesProjectFilterInput {
   and: [DesProjectFilterInput!]
   or: [DesProjectFilterInput!]
-  "The unique address of this project on the web."
+  "The Altium 365 web address."
   url: DesUriFilterInput
   "The reference identifier for this project."
   projectId: DesStringOperationFilterInput
-  "The assigned name for this Project."
+  "The assigned name for this project."
   name: DesStringOperationFilterInput
   "The summary of this project content or purpose."
   description: DesStringOperationFilterInput
@@ -991,6 +986,11 @@ input DesSchematicFilterInput {
   documentId: DesStringOperationFilterInput
   parentIds: DesListStringOperationFilterInput
   units: DesComparableInt32OperationFilterInput
+}
+
+input DesTerminateWorkflowsInput {
+  workspaceUrl: String!
+  workflowIds: [String!]!
 }
 
 input DesUpdateCommentInput {

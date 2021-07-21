@@ -39,10 +39,12 @@ Use this application client ID and secret for the variables.
 
 ### nexar-console-net4x
 
-This template is for .NET Framework apps. Note that net472+ is recommended and net461 is the minimum possible.
-The reason is that the Strawberry Shake generated code is netstandard only.
-That is why in this template there are two projects:
-`Nexar.Client` (netstandard2.0) and the main `Program` (net472) which references `Nexar.Client`.
+This template is for .NET Framework. Note that net472+ is recommended and net461 is the minimum possible.
+Unlike other templates, it uses the environment variable `NEXAR_TOKEN`.
+You may generate this token at your [nexar.com] application details.
+
+Projects have different target frameworks because Strawberry Shake generated code is netstandard only:
+`Nexar.Client` is netstandard2.0 and the main `Program` is net472.
 
     dotnet new nexar-console-net4x
 
@@ -62,15 +64,15 @@ Having installed Nexar templates and ID and secret variables, try the following 
 mkdir MyNexarDesign
 cd MyNexarDesign
 dotnet new nexar-console-design
+
+cd Program
 dotnet run
 ```
 
 **Explanation:**
 
-`mkdir` and `cd` create the new directory `MyNexarDesign` and change to it.
-
 `dotnet new` creates the new C# project `MyNexarDesign.csproj` and its source files from the template `nexar-console-design`.
-The subdirectory `GraphQL` contains the configuration, schema, and the directory `Resources` with app queries.
+The subdirectory `Nexar.Client` contains the configuration, schema, and the directory `Resources` with app queries.
 The file `Queries.graphql` contains a sample query.
 
 `dotnet run` builds and runs the created project:
@@ -86,16 +88,16 @@ The file `Queries.graphql` contains a sample query.
 
 ### Update query
 
-Modify or replace the sample query in GraphQL folder with your custom query.
-Build the project. StrawberryShake regenerates the query and result types.
-At this point `Program.cs` using the old query and results may not compile.
-Update its code to call the new query and process the new results.
+Modify or replace the sample query in `Nexar.Client/Resources`.
+Build the solution. StrawberryShake regenerates the query and result types.
+At this point `Program.cs` using the old query and result may not compile.
+Update its code for the new query and result types.
 Build and run the updated program.
 
 ### Update schema
 
 Nexar GraphQL API is being actively developed and its GraphQL schema is likely to change.
-Use the StrawberryShake tools for updating the schema file `GraphQL/schema.graphql`.
+Use the StrawberryShake tools for updating the schema file `Nexar.Client/schema.graphql`.
 
 You may install the tools globally:
 
@@ -103,7 +105,7 @@ You may install the tools globally:
 
 Update the schema with global tools:
 
-    cd <project-path>/GraphQL
+    cd Nexar.Client
     dotnet-graphql update
 
 Alternatively, install the tools locally (suitable for source control):
@@ -118,5 +120,5 @@ Then on another machine you may restore local tools as:
 
 Update the schema with local tools:
 
-    cd <project-path>/GraphQL
+    cd Nexar.Client
     dotnet graphql update
