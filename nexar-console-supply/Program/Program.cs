@@ -45,6 +45,11 @@ class Program
             var result = await nexarClient.SearchMpn.ExecuteAsync(mpn);
             result.EnsureNoErrors();
 
+            if (result.Data.SupSearchMpn.Results == null)
+            {
+                continue;
+            }
+
             // process (print) the strongly typed results
             foreach (var it in result.Data.SupSearchMpn.Results)
             {
