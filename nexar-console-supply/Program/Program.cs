@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 class Program
 {
+    private static readonly TimeSpan TokenLifetime = TimeSpan.FromDays(1);
+
     static async Task Main()
     {
         // assume Nexar client ID and secret are set as environment variables
@@ -16,19 +18,11 @@ class Program
 
         // get the token
         var httpClient = new HttpClient();
+        var tokenExpiresAt = DateTime.UtcNow + TokenLifetime;
         var token = await httpClient.GetNexarTokenAsync(clientId, clientSecret);
 
         // create and configure the Nexar client
-        var serviceCollection = new ServiceCollection();
-        serviceCollection
-            .AddNexarClient()
-            .ConfigureHttpClient(httpClient =>
-            {
-                httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
-                httpClient.DefaultRequestHeaders.Add("token", token);
-            });
-        var services = serviceCollection.BuildServiceProvider();
-        var nexarClient = services.GetRequiredService<NexarClient>();
+        var nexarClient = GetNexarClient(token);
 
         // loop of searches
         for (; ; )
@@ -38,6 +32,14 @@ class Program
             var mpn = Console.ReadLine();
             if (string.IsNullOrEmpty(mpn))
                 return;
+
+            if (DateTime.UtcNow >= tokenExpiresAt)
+            {
+                // token has expired, request a new one
+                tokenExpiresAt = DateTime.UtcNow + TokenLifetime;
+                token = await httpClient.GetNexarTokenAsync(clientId, clientSecret);
+                nexarClient = GetNexarClient(token);
+            }
 
             // invoke the generated query with the parameter and check for errors
             var result = await nexarClient.SearchMpn.ExecuteAsync(mpn);
@@ -52,5 +54,19 @@ class Program
                 Console.WriteLine();
             }
         }
+    }
+
+    private static NexarClient GetNexarClient(string token)
+    {
+        var serviceCollection = new ServiceCollection();
+        serviceCollection
+            .AddNexarClient()
+            .ConfigureHttpClient(httpClient =>
+            {
+                httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
+                httpClient.DefaultRequestHeaders.Add("token", token);
+            });
+        var services = serviceCollection.BuildServiceProvider();
+        return services.GetRequiredService<NexarClient>();
     }
 }
