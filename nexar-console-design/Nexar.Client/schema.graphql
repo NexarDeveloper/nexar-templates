@@ -57,6 +57,7 @@ type Query {
   desManufacturePackages: [DesManufacturePackage!]!
   desManufacturePackageById(id: ID!): DesManufacturePackage
   desManufacturePackageCreationJob(id: ID!): DesManufacturePackageCreationJob
+  supOctopartIdFromCiivaId(workspaceUrl: String! ciivaId: String!): String
   "Get all attributes"
   supAttributes: [SupAttribute!]!
   "Get manufacturer companies"
@@ -137,6 +138,7 @@ type Mutation {
   manInsertOrderPcbsReceivedEvent(input: ManOrderPcbsReceivedInput!): ManOrder
   manInsertOrderProcessStartEvent(input: ManOrderProcessStartInput!): ManOrder
   manInsertOrderShippedEvent(input: ManOrderShippedInput!): ManOrder
+  manInsertOrderConsignmentDetailsEvent(input: ManOrderConsignmentDetailsInput!): ManOrder
 }
 
 type Subscription {
@@ -463,6 +465,8 @@ type DesLayer {
   thickness: DesSize
   dielectricConstant: Decimal
   copperWeight: DesWeight
+  "Currently returns a static value of 0.666."
+  copperRatio: Decimal
   material: String
   nets: [DesNet!]!
   layerType: DesLayerType!
@@ -904,6 +908,8 @@ type DesUpdateUserPayload {
 
 "User details with the identifier and nullable extra fields."
 type DesUser {
+  "Null if the user no longer exists."
+  pictureUrl(size: DesUserPictureSize): String
   "Null if the user no longer exists."
   groups: [DesUserGroup!]
   "The internal user ID."
@@ -1545,6 +1551,13 @@ enum DesPrimitiveShape {
   ROUNDED_RECTANGLE
 }
 
+enum DesUserPictureSize {
+  SIZE48X48
+  SIZE70X70
+  SIZE128X128
+  ORIGINAL
+}
+
 "Used to show the filters that are applied to current search."
 type SupAppliedFilter {
   "shortname is the key in the filters Map.  Usually an attribute shortname, or `manufacturerId`, `distributorId`, etc."
@@ -2075,6 +2088,7 @@ type ManBoardMeta {
   projectId: String
   boardDetails: ManBoardDetails
   parts: [ManPart]
+  consignmentCount: Int!
   bomIssues: ManBomIssues!
   placementStats: ManPlacementInfo
   minClearance: ManLength
@@ -2152,6 +2166,15 @@ type ManOrderBatchedEvent implements ManOrderEvent {
 type ManOrderCancelEvent implements ManOrderEvent {
   eventType: ManOrderEventType!
   timestamp: Int!
+}
+
+type ManOrderConsignmentDetailsEvent implements ManOrderEvent {
+  eventType: ManOrderEventType!
+  timestamp: Int!
+  shipping: ManShippingDetails!
+  receiveBy: DateTime!
+  consignmentId: ID!
+  parts: [ManPartQuantity!]!
 }
 
 type ManOrderCreatedEvent implements ManOrderEvent {
@@ -2248,6 +2271,12 @@ type ManPartChoice {
   octopartId: String
   image: String
   octopartUrl: String
+}
+
+type ManPartQuantity {
+  reference: String!
+  quantity: Int!
+  linkedPart: ManPartChoice
 }
 
 type ManPathSegment {
@@ -2400,6 +2429,14 @@ input ManOrderBatchedInput {
   orderId: ID!
 }
 
+input ManOrderConsignmentDetailsInput {
+  orderId: ID!
+  shipping: ManShippingDetailsInput!
+  receiveBy: DateTime!
+  consigmentId: ID!
+  partQuantities: [ManPartQuantityInput!]!
+}
+
 input ManOrderEmsAcceptInput {
   orderId: ID!
   emsReference: String
@@ -2443,15 +2480,22 @@ input ManOrderShippedInput {
 input ManPartChoiceInput {
   mpn: String
   manufacturer: String
+  octopartId: String
   suppliers: [ManPurchaseOptionInput]
 }
 
 input ManPartInput {
   id: ID
+  componentId: ID
   type: ManMountingType
   pinCount: Int
   partChoices: [ManPartChoiceInput]
   placements: [ManPlacementInput]
+}
+
+input ManPartQuantityInput {
+  id: ID!
+  amount: Int!
 }
 
 input ManPartSelectionInput {
@@ -2571,6 +2615,7 @@ enum ManOrderEventType {
   ACCEPTED
   EMS_ACCEPTED
   PAID
+  CONSIGNMENT_DETAILS
   TIME_ESTIMATION
   REVIEWED
   BATCHED

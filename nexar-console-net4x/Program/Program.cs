@@ -18,7 +18,7 @@ class Program
             .ConfigureHttpClient(httpClient =>
             {
                 httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
-                httpClient.DefaultRequestHeaders.Add("token", nexarToken);
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
             });
         var services = serviceCollection.BuildServiceProvider();
         var nexarClient = services.GetRequiredService<NexarClient>();
@@ -35,6 +35,8 @@ class Program
             // invoke the generated query with the parameter and check for errors
             var result = await nexarClient.SearchMpn.ExecuteAsync(mpn);
             result.EnsureNoErrors();
+            if (result.Data.SupSearchMpn.Results == null)
+                continue;
 
             // process (print) the strongly typed results
             foreach (var it in result.Data.SupSearchMpn.Results)

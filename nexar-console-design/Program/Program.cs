@@ -16,7 +16,7 @@ class Program
         // sign in and get the token
         var login = await LoginHelper.LoginAsync(clientId, clientSecret, new string[] { "user.access", "design.domain" });
         var username = login.Username;
-        var token = login.AccessToken;
+        var nexarToken = login.AccessToken;
 
         // create and configure the Nexar client
         var serviceCollection = new ServiceCollection();
@@ -25,7 +25,7 @@ class Program
             .ConfigureHttpClient(httpClient =>
             {
                 httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
-                httpClient.DefaultRequestHeaders.Add("token", token);
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
             });
         var services = serviceCollection.BuildServiceProvider();
         var nexarClient = services.GetRequiredService<NexarClient>();

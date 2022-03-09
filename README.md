@@ -19,7 +19,7 @@ The above command installs the following templates:
 
 ### nexar-console-design
 
-C# .NET 5 console app running the query `desWorkspaces`.
+C# .NET 6 console app running the query `desWorkspaces`.
 For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
 You need an application at [nexar.com] with the Design scope.
 Use this application client ID and secret for the variables.
@@ -30,10 +30,12 @@ You need your Altium Live credentials and have to be a member of at least one Al
 
 ### nexar-console-supply
 
-C# .NET 5 console app running the loop of queries `supSearchMpn`.
+C# .NET 6 console app running the loop of queries `supSearchMpn`.
 For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
 You need an application at [nexar.com] with the Supply scope.
 Use this application client ID and secret for the variables.
+
+This sample also shows how to automatically update the token.
 
     dotnet new nexar-console-supply
 
