@@ -12,7 +12,7 @@ Nexar client dotnet templates.
 In order to install the templates, invoke:
 
 ```
-dotnet new -i Nexar.Templates
+dotnet new install Nexar.Templates
 ```
 
 The above command installs the following templates:
@@ -55,7 +55,7 @@ Projects have different target frameworks because Strawberry Shake generated cod
 In order to uninstall the templates, invoke:
 
 ```
-dotnet new -u Nexar.Templates
+dotnet new uninstall Nexar.Templates
 ```
 
 ## Example

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Nexar.Templates</id>
-    <version>0.2.9</version>
+    <version>0.2.10</version>
     <releaseNotes>Update GraphQL schema and packages.</releaseNotes>
     <description>
 Nexar GraphQL client templates.
@@ -11,6 +11,8 @@ Nexar GraphQL client templates.
     <projectUrl>https://github.com/NexarDeveloper/nexar-templates</projectUrl>
     <license type="expression">MIT</license>
     <tags>Nexar GraphQL Template HotChocolate StrawberryShake</tags>
+    <icon>Nexar.png</icon>
+    <readme>README.md</readme>
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
