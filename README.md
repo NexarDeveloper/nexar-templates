@@ -88,6 +88,25 @@ The file `Queries.graphql` contains a sample query.
 
 ## Further development
 
+### Update GraphQL schema
+
+Nexar GraphQL API is being actively developed and its GraphQL schema evolves.
+The schema packaged with templates may be out of date.
+
+Ensure `StrawberryShake.Tools` (listed in `.config\dotnet-tools.json`).
+This step is needed once to install the package.
+
+    cd Nexar.Client
+    dotnet tools restore
+
+Update the Nexar GraphQL schema (`schema.graphql`).
+
+    cd Nexar.Client
+    dotnet graphql update
+
+The above commands use [StrawberryShake.Tools](https://www.nuget.org/packages/StrawberryShake.Tools).
+The recommended version is 12.17.0 (do not use 13+ yet, it has a known issue).
+
 ### Compose GraphQL
 
 Modify or replace the sample query in `Nexar.Client/Resources`.
@@ -97,54 +116,38 @@ Update its code for the new query and result types.
 Build and run the updated program.
 
 You can add new GraphQL operations (queries, mutations) to the same file or
-create additional `*.graphql` files. Note that anonymous operations are not
-supported, names are used for the corresponding generated C# types names.
+create additional `*.graphql` files. Anonymous operations are not supported,
+names are used for the corresponding generated C# types names. Use unique
+operation names: `query GetSomething ...` or `mutation DoSomething ...`.
 
 ### GraphQL IDEs
 
 Composing queries in `*.graphql` files using plain text editors is possible but tedious and error prone.
 Instead or in addition, consider using one of GraphQL IDEs, for example one of these:
 
-#### VSCode GraphQL extension
-
-If you use VSCode, install its `GraphQL` extension.
-Then open the directory `Nexar.Client` in VSCode and edit `Resources/*.graphql` files.
-VSCode reads the configuration and schema and provides GraphQL syntax highlighting, schema validation, code completion and tooltips.
-
-#### Banana Cake Pop web IDE
+#### Banana Cake Pop (web)
 
 Navigate to <https://api.nexar.com/graphql/> in your browser and you get the IDE for Nexar GraphQL.
-Compose queries in the IDE and use in `*.graphql` files (copy/paste, unlike with VSCode).
+Compose queries in the IDE and use in `*.graphql` files (copy/paste, unlike with desktop IDEs).
 
-In order to try queries in the IDE, set the HTTP header `token` to your Nexar token.
-If operations require variables, use the variables tab for defining their values.
+In order to try queries in the IDE, use the tab `HTTP headers` and set `Authorization` to `Bearer <nexar-token>`.
+If operations require variables, use the tab `Variables` and define variables using JSON format.
 
-### Update Nexar GraphQL schema
+#### Visual Studio extension
 
-Nexar GraphQL API is being actively developed and its GraphQL schema evolves.
-The schema packaged with installed templates may be slightly out of date.
-Use the StrawberryShake tools for updating the schema `Nexar.Client/schema.graphql`.
+If you use Visual Studio, try [Strawberry Shake (preview)](https://marketplace.visualstudio.com/items?itemName=ChilliCream.strawberryshake-visualstudio).
 
-You may install the tools globally:
+It is from the same vendor as `StrawberryShake.Tools`. It understands the
+client configuration file and schema without additional steps. It provides
+syntax highlighting, schema validation, code completion, tooltips.
 
-    dotnet tool install StrawberryShake.Tools --global
+In spite of the preview status, the extension works very well with just a few
+minor issues. One of them: it creates an extra `.graphqlrc.json` file in the
+solution directory. Exclude this noise file from your source control.
 
-And then update the schema like this:
+#### VSCode GraphQL extensions
 
-    cd Nexar.Client
-    dotnet-graphql update
-
-Alternatively, install the tools locally (suitable for source control):
-
-    cd <repository-root>
-    dotnet new tool-manifest
-    dotnet tool install StrawberryShake.Tools
-
-On another machine you may restore local tools by:
-
-    dotnet tool restore
-
-To update the schema with restored local tools:
-
-    cd Nexar.Client
-    dotnet graphql update
+If you use VSCode, there are several handy GraphQL extensions, per your choice.
+They read some configuration with registered `schema.graphql` and provide
+GraphQL syntax highlighting, schema validation, code completion, tooltips.
+Some even invoke GraphQL operations in VSCode and show results.

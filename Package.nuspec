@@ -2,8 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Nexar.Templates</id>
-    <version>0.2.11</version>
-    <releaseNotes>Update GraphQL schema and packages.</releaseNotes>
+    <version>1.0.0</version>
+    <releaseNotes>Use local dotnet-graphql tool.</releaseNotes>
     <description>
 Nexar GraphQL client templates.
     </description>
