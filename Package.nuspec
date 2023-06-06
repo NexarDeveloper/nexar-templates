@@ -2,10 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Nexar.Templates</id>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <releaseNotes>
-Update schema.
-Work around unwanted berry folders.
+StrawberryShake 13.2.0
     </releaseNotes>
     <description>
 Nexar GraphQL client templates.

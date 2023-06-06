@@ -45,8 +45,8 @@ C# .NET Framework console app. Note that net472+ is recommended and net461 is th
 Unlike other templates, the app uses the environment variable `NEXAR_TOKEN`, to show this simpler scenario.
 You may generate this token at your [nexar.com] application details. Copy and use the token until it expires.
 
-Projects have different target frameworks because Strawberry Shake generated code is netstandard only.
-`Nexar.Client` is netstandard2.0 (StrawberryShake client) and `Program` is net472 (the main app).
+Projects use different target frameworks. `Nexar.Client` is netstandard2.0
+(StrawberryShake client) and `Program` is net472 (the main app).
 
     dotnet new nexar-console-net4x
 
@@ -79,8 +79,8 @@ The file `Queries.graphql` contains a sample query.
 
 `dotnet run` builds and runs the created project:
 
-- The [StrawberryShake] processes queries in `Resources` and generates C# client code in `Generated`.
-- `Program.cs` is compiled with generated strongly typed query execution and results.
+- [StrawberryShake] processes queries in `Resources` and generates the client types.
+- `Program.cs` uses the generated strongly typed query execution and results.
 - When the app runs:
     - it starts the browser for signing in and getting the token
     - it creates and configures the Nexar client with the token
@@ -93,7 +93,7 @@ The file `Queries.graphql` contains a sample query.
 Nexar GraphQL API is being actively developed and its GraphQL schema evolves.
 The schema packaged with templates may be out of date.
 
-Ensure `StrawberryShake.Tools` (listed in `.config\dotnet-tools.json`).
+Ensure [StrawberryShake.Tools](https://www.nuget.org/packages/StrawberryShake.Tools) (listed in `.config\dotnet-tools.json`).
 This step is needed once to install the package.
 
     cd Nexar.Client
@@ -103,9 +103,6 @@ Update the Nexar GraphQL schema (`schema.graphql`).
 
     cd Nexar.Client
     dotnet graphql update
-
-The above commands use [StrawberryShake.Tools](https://www.nuget.org/packages/StrawberryShake.Tools).
-The recommended version is 12.17.0 (do not use 13+ yet, it has a known issue).
 
 ### Compose GraphQL
 
