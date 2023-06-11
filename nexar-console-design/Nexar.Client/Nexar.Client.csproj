@@ -3,6 +3,6 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.Server" Version="13.2.0" />
+    <PackageReference Include="StrawberryShake.Server" Version="13.2.1" />
   </ItemGroup>
 </Project>
