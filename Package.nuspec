@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Nexar.Templates</id>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <releaseNotes>
-StrawberryShake 13.2.1, Nexar.Client.Login 0.3.0
+Nexar.Client.Login 0.3.1
     </releaseNotes>
     <description>
 Nexar GraphQL client templates.
