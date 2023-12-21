@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Nexar.Client;
+﻿using Nexar.Client;
 using Nexar.Client.Login;
 using StrawberryShake;
 using System;
@@ -9,26 +8,21 @@ class Program
 {
     static async Task Main()
     {
-        // assume Nexar client ID and secret are set as environment variables
+        // get the Nexar client ID and secret
         var clientId = Environment.GetEnvironmentVariable("NEXAR_CLIENT_ID") ?? throw new InvalidOperationException("Please set environment 'NEXAR_CLIENT_ID'");
         var clientSecret = Environment.GetEnvironmentVariable("NEXAR_CLIENT_SECRET") ?? throw new InvalidOperationException("Please set environment 'NEXAR_CLIENT_SECRET'");
 
-        // sign in and get the token
+        // login and get the Nexar token
         var login = await LoginHelper.LoginAsync(clientId, clientSecret, new string[] { "user.access", "design.domain" });
         var username = login.Username;
         var nexarToken = login.AccessToken;
 
-        // create and configure the Nexar client
-        var serviceCollection = new ServiceCollection();
-        serviceCollection
-            .AddNexarClient()
-            .ConfigureHttpClient(httpClient =>
-            {
-                httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
-            });
-        var services = serviceCollection.BuildServiceProvider();
-        var nexarClient = services.GetRequiredService<NexarClient>();
+        // create the Nexar client
+        var nexarClient = NexarClientFactory.CreateClient(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
+        });
 
         // invoke the generated query and check for errors
         var result = await nexarClient.Workspaces.ExecuteAsync();

@@ -35,18 +35,18 @@ For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `
 You need an application at [nexar.com] with the Supply scope.
 Use this application client ID and secret for the variables.
 
-This sample also shows how to automatically update the token.
+This sample shows how to cache and update the token.
 
     dotnet new nexar-console-supply
 
 ### nexar-console-net4x
 
-C# .NET Framework console app. Note that net472+ is recommended and net461 is the minimum possible.
-Unlike other templates, the app uses the environment variable `NEXAR_TOKEN`, to show this simpler scenario.
+C# .NET Framework 4.7.2 console app.
+Unlike other templates, the app uses the environment variable `NEXAR_TOKEN`, to show the simplest scenario.
 You may generate this token at your [nexar.com] application details. Copy and use the token until it expires.
 
-Projects use different target frameworks. `Nexar.Client` is netstandard2.0
-(StrawberryShake client) and `Program` is net472 (the main app).
+Projects use different target frameworks.
+`Nexar.Client` is netstandard2.0 (for StrawberryShake) and `Program` is net472 (for the app).
 
     dotnet new nexar-console-net4x
 

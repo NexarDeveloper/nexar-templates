@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Nexar.Client;
+﻿using Nexar.Client;
 using StrawberryShake;
 using System;
 using System.Threading.Tasks;
@@ -8,20 +7,15 @@ class Program
 {
     static async Task Main()
     {
-        // assume the Nexar token is set as the environment variable
+        // get the Nexar token
         var nexarToken = Environment.GetEnvironmentVariable("NEXAR_TOKEN") ?? throw new InvalidOperationException("Please set environment 'NEXAR_TOKEN'");
 
-        // create and configure the Nexar client
-        var serviceCollection = new ServiceCollection();
-        serviceCollection
-            .AddNexarClient()
-            .ConfigureHttpClient(httpClient =>
-            {
-                httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
-            });
-        var services = serviceCollection.BuildServiceProvider();
-        var nexarClient = services.GetRequiredService<NexarClient>();
+        // create the Nexar client
+        var nexarClient = NexarClientFactory.CreateClient(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri("https://api.nexar.com/graphql");
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {nexarToken}");
+        });
 
         // loop of searches
         for (; ; )
