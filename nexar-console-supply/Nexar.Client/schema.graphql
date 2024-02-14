@@ -153,6 +153,10 @@ type Query {
   datEddiLatestEdition: DatEddiEdition!
   datEddiEditions(where: DatEddiEditionFilterInput): [DatEddiEdition!]!
   supOctocart(items: [SupOctocartPartsBySellerInput!]! country: String = "US" currency: String = "USD"): [SupOctocartLink!]!
+  datRepReports(companyId: String! "Returns the first N elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last N elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: IDatRepReportFilterInput order: [IDatRepReportSortInput!]): DatRepReportsConnection
+  datRepDownloadableFile(companyId: String! reportId: String!): DatRepDownloadableFile
+  datRepOctopartReportTypes: [DatRepOctopartReportType!]!
+  datRepOctopartReportRequests(companyId: String!): [DatRepOctopartReportRequest!]!
 }
 
 type Mutation {
@@ -297,8 +301,9 @@ type DesAssemblyDrawings {
 type DesBom implements Node {
   "The node identifier for this BOM (used by `desBomById`)."
   id: ID!
-  "The list of each unique part within the BOM."
-  bomItems: [DesBomItem!]!
+  bomItems: [DesBomItem!]! @deprecated(reason: "Use `items`.")
+  "The list of BOM items returned by pages."
+  items("Returns the first N elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last N elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): DesBomItemConnection
 }
 
 "A Bill of Materials (BOM) item contains usage information for a unique component on the PCB."
@@ -311,8 +316,30 @@ type DesBomItem {
   bomItemInstances: [DesBomItemInstance!]!
 }
 
+"A connection to a list of items."
+type DesBomItemConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [DesBomItemEdge!]
+  "A flattened list of the nodes."
+  nodes: [DesBomItem!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type DesBomItemEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: DesBomItem!
+}
+
 "A Bill of Materials (BOM) item instance contains information for one specific use case of the item."
 type DesBomItemInstance {
+  "An alternate component used in this variant."
+  alternateComponent: DesComponent
   "The unique label for this item."
   designator: String!
   "The variant use status for this item."
@@ -586,6 +613,8 @@ type DesCadSplitLine {
 
 "ECAD or MCAD revision data."
 type DesCollaborationRevision {
+  "Revision download data."
+  downloadableFile: DesDownloadableFile!
   "The user who created this revision."
   createdBy: DesUser!
   "*PROTOTYPE, SUBJECT TO CHANGE*"
@@ -594,8 +623,6 @@ type DesCollaborationRevision {
   comment: String!
   "Creation time."
   createdAt: DateTime!
-  "Revision download data."
-  downloadableFile: DesDownloadableFile!
 }
 
 "A connection to a list of items."
@@ -714,6 +741,8 @@ type DesCommentThread {
   createdBy: DesUser!
   "The account information for who most recently modified this comment thread."
   modifiedBy: DesUser!
+  "The web address to download the screenshot associated with the creation of this comment thread."
+  originalStateScreenshotUrl: String
   "The list of replies associated with this comment thread."
   comments: [DesComment!]!
   "The reference identifier for this comment thread (used by `desCreateComment`, `desDeleteComment`, `desUpdateComment`)."
@@ -723,8 +752,6 @@ type DesCommentThread {
   createdAt: DateTime!
   "The `DateTime` for the most recent modification of this comment thread."
   modifiedAt: DateTime!
-  "The web address to download the screenshot associated with the creation of this comment thread."
-  originalStateScreenshotUrl: String
   "The sequence number of this comment thread."
   threadNumber: Int!
   "The information about properties related to this comment thread."
@@ -5172,51 +5199,6 @@ union DatScrCreateJobError = DatScrQuotaExceededError | DatScrSubscriptionNotFou
 
 union DatScrDeleteJobError = DatScrCouldNotDeleteJobError
 
-input ComparableDateTimeOperationFilterInput {
-  eq: DateTime
-  neq: DateTime
-  in: [DateTime!]
-  nin: [DateTime!]
-  gt: DateTime
-  ngt: DateTime
-  gte: DateTime
-  ngte: DateTime
-  lt: DateTime
-  nlt: DateTime
-  lte: DateTime
-  nlte: DateTime
-}
-
-input ComparableInt32OperationFilterInput {
-  eq: Int
-  neq: Int
-  in: [Int!]
-  nin: [Int!]
-  gt: Int
-  ngt: Int
-  gte: Int
-  ngte: Int
-  lt: Int
-  nlt: Int
-  lte: Int
-  nlte: Int
-}
-
-input ComparableNullableOfDoubleOperationFilterInput {
-  eq: Float
-  neq: Float
-  in: [Float]
-  nin: [Float]
-  gt: Float
-  ngt: Float
-  gte: Float
-  ngte: Float
-  lt: Float
-  nlt: Float
-  lte: Float
-  nlte: Float
-}
-
 input DatBomItemInput {
   itemRefId: String
   manufacturerName: String
@@ -5235,24 +5217,24 @@ input DatBomPartItemInput {
 input DatEddiCategoryFilterInput {
   and: [DatEddiCategoryFilterInput!]
   or: [DatEddiCategoryFilterInput!]
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
   name: StringOperationFilterInput
 }
 
 input DatEddiEditionFilterInput {
   and: [DatEddiEditionFilterInput!]
   or: [DatEddiEditionFilterInput!]
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
   title: StringOperationFilterInput
-  releaseDate: ComparableDateTimeOperationFilterInput
+  releaseDate: DateTimeOperationFilterInput
 }
 
 input DatEddiIndexFilterInput {
   and: [DatEddiIndexFilterInput!]
   or: [DatEddiIndexFilterInput!]
-  indexDate: ComparableDateTimeOperationFilterInput
-  supplyIndex: ComparableNullableOfDoubleOperationFilterInput
-  demandIndex: ComparableNullableOfDoubleOperationFilterInput
+  indexDate: DateTimeOperationFilterInput
+  supplyIndex: FloatOperationFilterInput
+  demandIndex: FloatOperationFilterInput
 }
 
 input DatEddiTimeSeriesFilterInput {
@@ -5295,6 +5277,36 @@ input DatScrPartInfoInput {
   partId: String!
   "Estimated Annual Usage (EAU) as a number of pieces."
   eau: Int!
+}
+
+input FloatOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float]
+  nin: [Float]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
 }
 
 input SupOctocartItemInput {
@@ -5341,6 +5353,110 @@ enum DatScrPartInfoRating {
   AMBER
   "This part has been procurable for the past 12 months and is predicted to be available in your desired quantity for 2+ months."
   GREEN
+}
+
+interface DatRepReport {
+  id: String!
+  fileType: String!
+  fileSize: Int!
+  createdDate: DateTime!
+  title: String!
+}
+
+interface Error {
+  message: String!
+}
+
+type DatRepDownloadableFile {
+  report: DatRepReport!
+  downloadUrl: String!
+  urlExpiryDate: DateTime!
+}
+
+type DatRepOctopartReport implements DatRepReport {
+  id: String!
+  fileType: String!
+  fileSize: Int!
+  createdDate: DateTime!
+  title: String!
+  companyId: String!
+}
+
+type DatRepOctopartReportRequest {
+  id: String!
+  companyId: String!
+  reportTypeId: String!
+  createdDate: DateTime!
+  numActiveReports: Int!
+  numDeletedReports: Int!
+}
+
+type DatRepOctopartReportRequestError implements Error {
+  message: String!
+}
+
+type DatRepOctopartReportType {
+  id: String!
+  name: String!
+  reportFamily: String!
+  description: String
+  frequency: String
+  exampleUrl: String
+}
+
+"A connection to a list of items."
+type DatRepReportsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [DatRepReportsEdge!]
+  "A flattened list of the nodes."
+  nodes: [DatRepReport!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type DatRepReportsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: DatRepReport!
+}
+
+type DatRepRequestOctopartReportsPayload {
+  datRepOctopartReportRequest: [DatRepOctopartReportRequest!]
+  errors: [DatRepRequestOctopartReportsError!]
+}
+
+union DatRepRequestOctopartReportsError = DatRepOctopartReportRequestError
+
+input DatRepRequestOctopartReportsInput {
+  companyId: String!
+  reportTypeIds: [String!]!
+}
+
+input IDatRepReportFilterInput {
+  and: [IDatRepReportFilterInput!]
+  or: [IDatRepReportFilterInput!]
+  id: StringOperationFilterInput
+  fileType: StringOperationFilterInput
+  fileSize: IntOperationFilterInput
+  createdDate: DateTimeOperationFilterInput
+  title: StringOperationFilterInput
+}
+
+input IDatRepReportSortInput {
+  id: SortEnumType
+  fileType: SortEnumType
+  fileSize: SortEnumType
+  createdDate: SortEnumType
+  title: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
 }
 
 enum ApplyPolicy {

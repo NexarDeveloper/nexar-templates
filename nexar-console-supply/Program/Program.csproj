@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Nexar.Client.Token" Version="0.1.0" />
+    <PackageReference Include="Nexar.Client.Token" Version="0.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Nexar.Client\Nexar.Client.csproj" />
