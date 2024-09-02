@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.Server" Version="13.8.1" />
-    <PackageReference Include="StrawberryShake.Transport.Http" Version="13.8.1" />
+    <PackageReference Include="StrawberryShake.Server" Version="13.9.11" />
+    <PackageReference Include="StrawberryShake.Transport.Http" Version="13.9.11" />
   </ItemGroup>
 </Project>
