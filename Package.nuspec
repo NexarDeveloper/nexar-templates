@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Nexar.Templates</id>
-    <version>1.1.5</version>
+    <version>1.2.0</version>
     <releaseNotes>
-Update schema and client tools 13.9.11
+Use net8.0, update schema and client tools 14.3.0.
     </releaseNotes>
     <description>
 Nexar GraphQL client templates.

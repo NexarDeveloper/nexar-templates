@@ -19,7 +19,7 @@ The above command installs the following templates:
 
 ### nexar-console-design
 
-C# .NET 6 console app running the query `desWorkspaces`.
+C# .NET 8 console app running the query `desWorkspaces`.
 For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
 You need an application at [nexar.com] with the Design scope.
 Use this application client ID and secret for the variables.
@@ -30,7 +30,7 @@ You need your Altium Live credentials and have to be a member of at least one Al
 
 ### nexar-console-supply
 
-C# .NET 6 console app running the loop of queries `supSearchMpn`.
+C# .NET 8 console app running the loop of queries `supSearchMpn`.
 For getting the token, it requires environment variables `NEXAR_CLIENT_ID` and `NEXAR_CLIENT_SECRET`.
 You need an application at [nexar.com] with the Supply scope.
 Use this application client ID and secret for the variables.
@@ -122,7 +122,7 @@ operation names: `query GetSomething ...` or `mutation DoSomething ...`.
 Composing queries in `*.graphql` files using plain text editors is possible but tedious and error prone.
 Instead or in addition, consider using one of GraphQL IDEs, for example one of these:
 
-#### Banana Cake Pop (web)
+#### Nitro (web)
 
 Navigate to <https://api.nexar.com/graphql/> in your browser and you get the IDE for Nexar GraphQL.
 Compose queries in the IDE and use in `*.graphql` files (copy/paste, unlike with desktop IDEs).
@@ -134,9 +134,10 @@ If operations require variables, use the tab `Variables` and define variables us
 
 If you use Visual Studio, try [Strawberry Shake (preview)](https://marketplace.visualstudio.com/items?itemName=ChilliCream.strawberryshake-visualstudio).
 
-It is from the same vendor as `StrawberryShake.Tools`. It understands the
-client configuration file and schema without additional steps. It provides
-syntax highlighting, schema validation, code completion, tooltips.
+It is from the same vendor as `Nitro` and `StrawberryShake.Tools`.
+It understands the client configuration file and schema without additional
+steps. It provides syntax highlighting, schema validation, code completion,
+tooltips.
 
 In spite of the preview status, the extension works very well with just a few
 minor issues. One of them: it creates an extra `.graphqlrc.json` file in the

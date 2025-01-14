@@ -66,6 +66,10 @@ type Query {
   desProjectTemplateById("The node identifier for a project template." id: ID!): DesProjectTemplate
   "Searches for a specific folder by its unique identifier."
   desFolderById("The node identifier for a folder." id: ID!): DesFolder
+  "Searches for a specific footprint by its unique identifier."
+  desFootprintById("The node identifier for a footprint." id: ID!): DesFootprint
+  "Searches for a specific symbol by its unique identifier."
+  desSymbolById("The node identifier for a symbol." id: ID!): DesSymbol
   "Search for comment threads associated with a project."
   desCommentThreads("The node identifier for a project (This is the project field named \"id\")." projectId: ID!): [DesCommentThread!]!
   "Search for a specific comment thread associated with a project."
@@ -206,6 +210,10 @@ type Mutation {
   desUpdateFolderPermissions(input: DesUpdateFolderPermissionsInput!): DesUpdateFolderPermissionsPayload!
   "Updates life cycle state for the provided component."
   desUpdateComponentLifeCycleState(input: DesUpdateComponentLifeCycleStateInput!): DesUpdateComponentLifeCycleStatePayload!
+  "Updates life cycle state for the provided footprint."
+  desUpdateFootprintLifeCycleState(input: DesUpdateFootprintLifeCycleStateInput!): DesUpdateFootprintLifeCycleStatePayload!
+  "Updates life cycle state for the provided symbol."
+  desUpdateSymbolLifeCycleState(input: DesUpdateSymbolLifeCycleStateInput!): DesUpdateSymbolLifeCycleStatePayload!
   "Creates a folder in the library."
   desCreateFolder(input: DesCreateFolderInput!): DesCreateFolderPayload!
   "Updates the specified folder in the library."
@@ -224,6 +232,8 @@ type Mutation {
   desUpdateProjectPermissions(input: DesUpdateProjectPermissionsInput!): DesUpdateProjectPermissionsPayload!
   "Link\/unlink A365 project with requirements block component."
   desSetProjectRequirementsBlock(input: DesSetProjectRequirementsBlockInput!): DesSetProjectRequirementsBlockPayload!
+  "Updates parameters for the specified project (does not affect the revision)."
+  desUpdateProjectParameters(input: DesUpdateProjectParametersInput!): DesUpdateProjectParametersPayload!
   "Updates a specific result block."
   desUpdateReuseBlock(input: DesUpdateReuseBlockInput!): DesUpdateReuseBlockPayload!
   "Creates a user."
@@ -438,7 +448,7 @@ type DesCadBoard3DBodyModelData {
   color: Long
   "3D model opacity."
   opacity: Float
-  "The token for getting URL by `desLibrary\/downloadUrlsByTokens`."
+  "The token for getting URL by `DesLibrary.downloadUrlsByTokens`."
   downloadToken: String
 }
 
@@ -460,7 +470,7 @@ type DesCadBoardArea {
   restrictsTHPad: Boolean!
   "CAD board area placement."
   placement: DesCadBoardComponentPlacement!
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
   "Board object type."
   objectType: DesCadBoardObjectType!
@@ -558,15 +568,15 @@ type DesCadBoardCopperRegion {
   layerName: String
   "CAD board copper region type."
   regionType: DesCadBoardCopperRegionType!
-  "JSON serialized array of `GeometricShape`."
+  "JSON serialized array of *GeometricShape*."
   outlineShapesJson: String
-  "JSON serialized array of `GeometricShape`."
+  "JSON serialized array of *GeometricShape*."
   holeShapesJson: String
 }
 
 "Information about a cutout on the CAD board."
 type DesCadBoardCutout {
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
   "CAD board cut abstruct unique identifier."
   uniqueId: String
@@ -656,7 +666,7 @@ type DesCadBoardRegion {
   color: Long!
   "CAD board region internal point."
   internalPoint: DesCadPoint!
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   shapeJson: String
   "CAD board region layers."
   layers: [DesCadBoardLayer!]
@@ -731,7 +741,7 @@ type DesCadComponentBodyShape {
   isHidden: Boolean!
   "True if CAD component is bodyless on ECAD."
   isBodylessOnEcad: Boolean!
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
   "CAD component model data."
   modelData: DesCadBoard3DBodyModelData
@@ -803,7 +813,7 @@ type DesCadDesign {
   copperLayers: [DesCadBoardCopperLayer!]
   "CAD design copper regions."
   copperRegions: [DesCadBoardCopperRegion!]
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   boardOutlineJson: String
   "CAD design board split lines."
   boardSplitLines: [DesCadSplitLine!]
@@ -849,7 +859,7 @@ type DesCadSplitLine {
   leftRegionName: String
   "CAD split line region name (right)."
   rightRegionName: String
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   shapeJson: String
   "Line starting point."
   startPoint: DesCadPoint!
@@ -1064,6 +1074,8 @@ type DesComponentConnection {
 }
 
 type DesComponentDetails {
+  "The component item internal identifier."
+  itemInternalId: String!
   "The list of revision level parameters from the latest revision. Parameter types are unknown (`NONE`) for unmanaged components."
   parameters: [DesComponentParameter!]!
   "The list of parameters describing the item."
@@ -1224,7 +1236,7 @@ type DesCreateUserGroupPayload {
 
 "Payload associated with creating a user."
 type DesCreateUserPayload {
-  "User identifier."
+  "Workspace user identifier."
   userId: String!
 }
 
@@ -1303,7 +1315,7 @@ type DesDesignExchange {
 
 "A design item is a specific instance of a part used in the design."
 type DesDesignItem implements Node {
-  "The node identifier for this project (used by `DesDesignItemById`)."
+  "The node identifier for this project (used by `desDesignItemById`)."
   id: ID!
   "The detailed component information for this design item."
   component: DesComponent
@@ -1376,6 +1388,16 @@ type DesDownloadableFile {
   downloadUrl: String!
 }
 
+"A folder of downloadable files."
+type DesDownloadableFolder {
+  "The folder relative path."
+  relativePath: String!
+  "Download URL for the whole folder."
+  downloadUrl: String!
+  "Downloadable files of this folder."
+  files: [DesDownloadableFile!]!
+}
+
 "Payload associated with error."
 type DesErrorPayload {
   "Error message."
@@ -1430,9 +1452,13 @@ type DesFolderPermission {
   name: String!
 }
 
-"Footprint files. Footprints define the space a component occupies."
-type DesFootprint {
+"A component footprint. Footprints define the space a component occupies."
+type DesFootprint implements Node {
+  "Footprint node identifier."
+  id: ID!
   pins: [DesPin!]! @deprecated(reason: "Not implemented and may be removed.")
+  "The life cycle state information."
+  lifeCycleState: DesLifeCycleState!
   "ECAD entity full size image URL."
   imageFullSizeUrl: String!
   "ECAD entity thumbnail image URL."
@@ -1441,8 +1467,11 @@ type DesFootprint {
   dataDownloadUrl: String!
   "ECAD entity folder."
   folder: DesFolder
-  "Globally unique identifier."
-  guid: String!
+  "Item internal identifier."
+  itemInternalId: String!
+  "Revision internal identifier."
+  revisionInternalId: String!
+  guid: String! @deprecated(reason: "Use `RevisionInternalId` instead.")
   "ECAD entity name."
   name: String!
   "ECAD entity comment."
@@ -1549,14 +1578,14 @@ type DesLibrary {
   updatedAt: DateTime!
 }
 
-"Revision naming scheme details obtained by `desLibrary\/lifeCycleDefinitions`."
+"Revision naming scheme details obtained by `desLifeCycleDefinitions`."
 type DesLifeCycleDefinition {
   "The user this life cycle definition was created by."
   createdBy: DesUser!
   "The user this life cycle definition was last updated by."
   updatedBy: DesUser!
   "The `DesLifeCycleStateTransition` list for this life cycle definition."
-  stateTransitions: [DesLifeCycleStateTransition]!
+  stateTransitions: [DesLifeCycleStateTransition!]!
   "The node ID."
   id: ID!
   "The reference ID for this life cycle definition."
@@ -1570,7 +1599,7 @@ type DesLifeCycleDefinition {
   "The `DateTime` this life cycle definition was last updated."
   updatedAt: DateTime!
   "The `DesLifeCycleStage` list for this life cycle definition."
-  stages: [DesLifeCycleStage]!
+  stages: [DesLifeCycleStage!]!
   "Type of life cycle management."
   lifeCycleManagementType: DesLifeCycleManagementType!
   "Tells if this life cycle definition is automatically assigned the first `DesLifeCycleState` when a revision is released."
@@ -1850,10 +1879,10 @@ type DesPcb {
 type DesPcbAssembly {
   "The name of the PCB assembly package."
   packageName: String!
-  "Pick and Place files and download URL."
-  pickAndPlace: DesPickAndPlace!
-  "Assembly drawing files and download URL."
-  assemblyDrawings: DesAssemblyDrawings!
+  "Downloadable folders."
+  folders: [DesDownloadableFolder!]!
+  pickAndPlace: DesPickAndPlace! @deprecated(reason: "Use `folders`.")
+  assemblyDrawings: DesAssemblyDrawings! @deprecated(reason: "Use `folders`.")
   "Download URL."
   downloadUrl: String!
   "Version."
@@ -1947,7 +1976,7 @@ type DesProject implements Node {
   "The web address to download a preview image for this project."
   previewUrl: String!
   "The list of workflows associated with this project."
-  workflows("An option to search workflows that have been completed." isClosed: Boolean! = false "An option to search workflows that have been modified after a specific `DateTime`." modifiedAfter: DateTime where: DesWorkflowFilterInput): [DesWorkflow!]
+  workflows("An option to search workflows that have been modified after a specific `DateTime`." modifiedAfter: DateTime "Filter workflows by a variable." withVariable: DesWorkflowFilterByVariableInput "An option to search workflows that have been completed." isClosed: Boolean! = false where: DesWorkflowFilterInput): [DesWorkflow!]
   "The latest VCS revision."
   latestRevision: DesVcsRevision!
   "The list of VCS revisions."
@@ -2021,12 +2050,14 @@ type DesProjectParameter {
 
 "A permission associated with the project."
 type DesProjectPermission {
+  "The name of this project permission."
+  name: String!
+  "The user this project permission is associated with."
+  user: DesUser
   "The permission scope to differentiate different permission types."
   scope: DesPermissionScope!
   "The `DesUserGroup` this permission is associated with."
   group: DesUserGroup
-  "The user this permission is associated with."
-  user: DesUser
   "Tells if this permission allows reading of the associated project."
   canRead: Boolean!
   "Tells if this permission allows editing the associated project."
@@ -2035,8 +2066,6 @@ type DesProjectPermission {
   canCreate: Boolean!
   "Tells if this permission allows deletion of the associated project."
   canDelete: Boolean!
-  "The name of this permission."
-  name: String!
 }
 
 "Information about a project template."
@@ -2251,7 +2280,7 @@ type DesRevisionDetails {
   modifiedAt: DateTime!
 }
 
-"Revision naming scheme details obtained by `desLibrary\/revisionNamingSchemes`. More information is available on revision naming schemes at: https:\/\/www.altium.com\/documentation\/altium-designer\/accessing-detailed-item-view#!revision_naming_scheme_dlg"
+"Revision naming scheme details obtained by `desRevisionNamingSchemes`. More information is available on revision naming schemes at: https:\/\/www.altium.com\/documentation\/altium-designer\/accessing-detailed-item-view#!revision_naming_scheme_dlg"
 type DesRevisionNamingScheme {
   "The user this revision naming scheme was created by."
   createdBy: DesUser!
@@ -2273,7 +2302,7 @@ type DesRevisionNamingScheme {
   levels: [DesRevisionNamingSchemeLevel!]!
   "The separator used between item ID and revision ID."
   itemRevisionSeparator: String!
-  "If true, the revision naming scheme is only applicable to objects of the content types specified by ContentTypes."
+  "If true, the revision naming scheme is only applicable to objects of the content types specified by `contentTypes`."
   isControlledPerContentType: Boolean!
 }
 
@@ -2334,7 +2363,7 @@ type DesSharedWithMe {
 
 "Information about a project that is shared with the user."
 type DesSharedWithMeProjectInfo {
-  "The project or null if its workspace is deleted. Avoid this field on getting many projects at once. Consider using `id` and `desProjectById`."
+  "The project or null if its workspace is deleted. Avoid this field on getting many projects at once. Consider using `projectId` and `desProjectById`."
   project: DesProject
   "The project node ID. Use it for getting the project by `desProjectById`."
   projectId: ID!
@@ -2370,8 +2399,11 @@ type DesSimulation {
   dataDownloadUrl: String!
   "ECAD entity folder."
   folder: DesFolder
-  "Globally unique identifier."
-  guid: String!
+  "Item internal identifier."
+  itemInternalId: String!
+  "Revision internal identifier."
+  revisionInternalId: String!
+  guid: String! @deprecated(reason: "Use `RevisionInternalId` instead.")
   "ECAD entity name."
   name: String!
   "ECAD entity comment."
@@ -2434,9 +2466,9 @@ type DesSupplierPart {
   companyName: String!
   "The part number (SKU)."
   partNumber: String!
-  "Use `prices` and `stocks` with library components only, e.g. `desLibrary\/components`, `desComponentById`."
+  "Use `prices` and `stocks` with library components only, e.g. `DesLibrary.components`, `desComponentById`."
   prices: [DesSupplierPrice!]
-  "Use `prices` and `stocks` with library components only, e.g. `desLibrary\/components`, `desComponentById`."
+  "Use `prices` and `stocks` with library components only, e.g. `DesLibrary.components`, `desComponentById`."
   stocks: [DesSupplierStock!]
 }
 
@@ -2459,9 +2491,13 @@ type DesSupplierStock {
 }
 
 "A component symbol. These represent the body and the pins on the physical component."
-type DesSymbol {
+type DesSymbol implements Node {
+  "Symbol node identifier."
+  id: ID!
   "The list of pins."
   pins: [DesPin!]!
+  "The life cycle state information."
+  lifeCycleState: DesLifeCycleState!
   "ECAD entity full size image URL."
   imageFullSizeUrl: String!
   "ECAD entity thumbnail image URL."
@@ -2470,8 +2506,11 @@ type DesSymbol {
   dataDownloadUrl: String!
   "ECAD entity folder."
   folder: DesFolder
-  "Globally unique identifier."
-  guid: String!
+  "Item internal identifier."
+  itemInternalId: String!
+  "Revision internal identifier."
+  revisionInternalId: String!
+  guid: String! @deprecated(reason: "Use `RevisionInternalId` instead.")
   "ECAD entity name."
   name: String!
   "ECAD entity comment."
@@ -2481,7 +2520,7 @@ type DesSymbol {
 }
 
 type DesSystemDiagram {
-  "The downloadable file for the system diagram"
+  "The downloadable file for the system diagram."
   systemDiagramFile: DesDownloadableFile
 }
 
@@ -2627,10 +2666,26 @@ type DesUpdateFolderPermissionsPayload {
   folderId: ID!
 }
 
+"Payload associated with updating a footprint life cycle state."
+type DesUpdateFootprintLifeCycleStatePayload {
+  "Footprint identifier."
+  footprintId: ID!
+  "Payload errors."
+  errors: [DesPayloadError!]!
+}
+
 "Payload associated with updating a life cycle definition."
 type DesUpdateLifeCycleDefinitionPayload {
   "Life cycle definition identifier."
   id: ID!
+  "Payload errors."
+  errors: [DesPayloadError!]!
+}
+
+"Payload associated with updating project parameters."
+type DesUpdateProjectParametersPayload {
+  "Project identifier."
+  projectId: ID!
   "Payload errors."
   errors: [DesPayloadError!]!
 }
@@ -2657,6 +2712,14 @@ type DesUpdateRevisionNamingSchemePayload {
 type DesUpdateSettingPayload {
   "The setting that was updated."
   setting: DesSetting!
+  "Payload errors."
+  errors: [DesPayloadError!]!
+}
+
+"Payload associated with updating a symbol life cycle state."
+type DesUpdateSymbolLifeCycleStatePayload {
+  "Symbol identifier."
+  symbolId: ID!
   "Payload errors."
   errors: [DesPayloadError!]!
 }
@@ -2711,8 +2774,10 @@ type DesUser {
   pictureUrl(size: DesUserPictureSize): String
   "Null if the user no longer exists."
   groups: [DesUserGroup!]
-  "The internal user ID."
-  userId: String!
+  "The workspace specific user identifier."
+  userId: String
+  "The global user identifier. Common for this user across all workspaces."
+  globalUserId: String
   "Null if the user no longer exists."
   userName: String
   "Null if the user no longer exists."
@@ -2787,7 +2852,7 @@ type DesVia {
   name: String
   "Via hole diameter."
   holeDiameter: DesSize!
-  "Via pad diameter"
+  "Via pad diameter."
   padDiameter: DesSize!
   "Via shape."
   shape: DesPrimitiveShape
@@ -2879,7 +2944,7 @@ type DesWorkflowVariable {
 
 "A workspace provides a flexible and secure method for managing design, manufacturing and supply content."
 type DesWorkspace implements Node {
-  "The node identifier for the workspace (used by `DesWorkspaceById`)."
+  "The node identifier for the workspace (used by `desWorkspaceById`)."
   id: ID!
   "The location of this workspace."
   location: DesWorkspaceLocation!
@@ -2892,7 +2957,7 @@ type DesWorkspace implements Node {
   "The list of workflow definitions in this workspace."
   workflowDefinitions(where: DesWorkflowDefinitionFilterInput): [DesWorkflowDefinition!]
   "The list of workflows in this workspace."
-  workflows(where: DesWorkflowFilterInput): [DesWorkflow!]
+  workflows("Filter workflows by a variable." withVariable: DesWorkflowFilterByVariableInput where: DesWorkflowFilterInput): [DesWorkflow!]
   "The descriptive label for this workspace."
   name: String!
   "The web address of this workspace."
@@ -2909,7 +2974,7 @@ type DesWorkspace implements Node {
 
 "A workspace provides a flexible and secure method for managing design, manufacturing and supply content."
 type DesWorkspaceInfo {
-  "The node identifier for the workspace (used by `DesWorkspaceById`)."
+  "The node identifier for the workspace (used by `desWorkspaceById`)."
   workspaceId: ID!
   "The descriptive label for this workspace."
   name: String!
@@ -3019,7 +3084,7 @@ input DesAddComponentPartChoicesInput {
 input DesAddUsersToGroupInput {
   "The group node ID."
   id: ID!
-  "User IDs."
+  "Workspace user identifiers."
   userIds: [String!]!
 }
 
@@ -3089,7 +3154,7 @@ input DesCadBoardAreaInput {
   restrictsTHPad: Boolean
   "CAD board area placement."
   placement: DesCadBoardComponentPlacement
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
 }
 
@@ -3175,9 +3240,9 @@ input DesCadBoardCopperLayerInput {
 input DesCadBoardCopperRegionInput {
   "CAD board copper region layer name."
   layerName: String
-  "JSON serialized array of `GeometricShape`."
+  "JSON serialized array of *GeometricShape*."
   outlineShapesJson: String
-  "JSON serialized array of `GeometricShape`."
+  "JSON serialized array of *GeometricShape*."
   holeShapesJson: String
 }
 
@@ -3195,7 +3260,7 @@ input DesCadBoardCutoutInput {
   originalDesignator: String
   "CAD board cutout associated component designator."
   associatedComponentDesignator: String
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
 }
 
@@ -3279,7 +3344,7 @@ input DesCadBoardRegionInput {
   color: Long
   "CAD board region internal point."
   internalPoint: DesCadBoardPointInput
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   shapeJson: String
   "CAD board region layers."
   layers: [DesCadBoardLayerInput!]
@@ -3325,9 +3390,9 @@ input DesCadBoardViaInput {
   startLayerName: String
   "End layer name for CAD board via."
   endLayerName: String
-  "CAD board via copper diameter"
+  "CAD board via copper diameter."
   copperDiameter: Int
-  "CAD board via hole diameter"
+  "CAD board via hole diameter."
   holeDiameter: Int
   "CAD board via location."
   location: DesCadBoardPointInput
@@ -3363,7 +3428,7 @@ input DesCadComponentBodyShapeInput {
   isHidden: Boolean
   "Whether CAD component body shape is bodyless on ECAD."
   isBodylessOnEcad: Boolean
-  "JSON serialized `GeometricShape`."
+  "JSON serialized *GeometricShape*."
   shapeJson: String
   "Model data for CAD component body shape."
   modelData: DesCadBoard3DBodyModelDataInput
@@ -3435,7 +3500,7 @@ input DesCadDesignInput {
   copperLayers: [DesCadBoardCopperLayerInput!]
   "CAD design copper regions."
   copperRegions: [DesCadBoardCopperRegionInput!]
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   boardOutlineJson: String
   "CAD design board split lines."
   boardSplitLines: [DesCadSplitLineInput!]
@@ -3475,7 +3540,7 @@ input DesCadSplitLineInput {
   leftRegionName: String
   "Right region name for CAD split line."
   rightRegionName: String
-  "JSON serialized `ComplexShape`."
+  "JSON serialized *ComplexShape*."
   shapeJson: String
 }
 
@@ -3602,13 +3667,13 @@ input DesCreateProjectExportJobInput {
   variantName: String
   "Tells to export any data specified by the input."
   exportAny: DesProjectExportAnyInput
-  "Tells to export Gerber and specifies the options."
+  "Tells to export *Gerber* and specifies the options."
   exportGerber: DesProjectExportGerberInput
-  "Tells to export GerberX2 and specifies the options."
+  "Tells to export *GerberX2* and specifies the options."
   exportGerberX2: DesProjectExportGerberX2Input
-  "Tells to export IDF and specifies the options."
+  "Tells to export *IDF* and specifies the options."
   exportIdf: DesProjectExportIdfInput
-  "Tells to export NCDrill and specifies the options."
+  "Tells to export *NCDrill* and specifies the options."
   exportNCDrill: DesProjectExportNCDrillInput
 }
 
@@ -3626,13 +3691,13 @@ input DesCreateRevisionNamingSchemeInput {
   workspaceUrl: String!
   "The name of this revision naming scheme."
   name: String!
-  "If true, the revision naming scheme is only applicable to objects of the content types specified by ContentTypes."
+  "If true, the revision naming scheme is only applicable to objects of the content types specified by `contentTypes`."
   isControlledPerContentType: Boolean
-  "If `IsControlledPerContentType` is true, the list of content types for which this revision naming scheme is applicable."
+  "If `isControlledPerContentType` is true, the list of content types for which this revision naming scheme is applicable."
   contentTypes: [DesContentTypeKind!]
   "The list of numbering levels for this revision naming scheme. Maximum of 3 levels."
   levels: [DesCreateRevisionNamingSchemeLevelInput!]!
-  "The separator used between item ID and revision ID. Allowed characters are:  ,.-_"
+  "The separator used between item ID and revision ID. Allowed characters are: ',', '.', '-', '_'."
   itemRevisionSeparator: String!
 }
 
@@ -3640,9 +3705,9 @@ input DesCreateRevisionNamingSchemeInput {
 input DesCreateRevisionNamingSchemeLevelInput {
   "The name of this revision naming level. In Altium Designer it is known as 'Caption'."
   name: String!
-  "The minimum character length allowed for this revision naming scheme level"
+  "The minimum character length allowed for this revision naming scheme level."
   minimumWidth: Int!
-  "The separator prefix character for this revision naming scheme level. Allowed characters are:  ,.-_"
+  "The separator prefix character for this revision naming scheme level. Allowed characters are: ',', '.', '-', '_'."
   levelSeparator: String!
   "The naming policy for this revision naming scheme level."
   revisionNamingPolicy: DesRevisionNamingPolicy!
@@ -3760,7 +3825,7 @@ input DesDeleteUserGroupInput {
 input DesDeleteUserInput {
   "URL for the workspace to delete the user from."
   workspaceUrl: String!
-  "User identifier."
+  "Workspace user identifier."
   userId: String!
 }
 
@@ -3850,6 +3915,24 @@ input DesLifeCycleStateInput {
   foregroundColor: DesColorInput
 }
 
+"Input for the life cycle state transition approval group."
+input DesLifeCycleStateTransitionApprovalGroupInput {
+  "The name of this life cycle state transition approval group."
+  name: String!
+  "The controllers that can provide an approval for this life cycle state transition approval group."
+  controllers: [DesLifeCycleStateTransitionControllerInput!]!
+}
+
+"Input for life cycle state transition controller."
+input DesLifeCycleStateTransitionControllerInput {
+  "Scope of the transition controller."
+  scope: DesPermissionScope!
+  "Workspace user identifier."
+  userId: String
+  "Group identifier."
+  groupId: ID
+}
+
 "Input for life cycle state transition."
 input DesLifeCycleStateTransitionInput {
   "Name of life cycle state transition."
@@ -3860,6 +3943,10 @@ input DesLifeCycleStateTransitionInput {
   stateBefore: String!
   "The name of the life cycle state after the transition."
   stateAfter: String!
+  "Controllers of this life cycle definition transition. If controllers and approvals are omitted, the controllers will default to ANYONE."
+  controllers: [DesLifeCycleStateTransitionControllerInput!]
+  "Approval groups for this life cycle definition transition. Mutually exclusive with controllers, if approvals are set, controllers must be omitted."
+  approvals: [DesLifeCycleStateTransitionApprovalGroupInput!]
 }
 
 "Input for moving a folder."
@@ -3896,33 +3983,33 @@ input DesPosition2DInput {
 
 "Input for exporting project."
 input DesProjectExportAnyInput {
-  "The content of Altium Designer `OutJob` file."
+  "The content of Altium Designer *OutJob* file."
   outJobContent: String!
-  "A suggested result file name. Default: `Export.zip`."
+  "A suggested result file name. Default: *Export.zip*."
   fileName: String
 }
 
 "Input for exporting project Gerber file."
 input DesProjectExportGerberInput {
-  "A suggested result file name. Default: `Gerber.zip`."
+  "A suggested result file name. Default: *Gerber.zip*."
   fileName: String
 }
 
 "Input for exporting project Gerber X2 file."
 input DesProjectExportGerberX2Input {
-  "A suggested result file name. Default: `GerberX2.zip`."
+  "A suggested result file name. Default: *GerberX2.zip*."
   fileName: String
 }
 
 "Input for exporting project IDF file."
 input DesProjectExportIdfInput {
-  "A suggested result file name. Default: `IDF.zip`."
+  "A suggested result file name. Default: *IDF.zip*."
   fileName: String
 }
 
 "Input for exporting project NC Drill file."
 input DesProjectExportNCDrillInput {
-  "A suggested result file name. Default: `NCDrill.zip`."
+  "A suggested result file name. Default: *NCDrill.zip*."
   fileName: String
 }
 
@@ -3946,6 +4033,14 @@ input DesProjectFilterInput {
   updatedAt: DateTimeOperationFilterInput
 }
 
+"Input for the parametric details of a project."
+input DesProjectParameterInput {
+  "Project parameter name."
+  name: String!
+  "Project parameter value."
+  value: String!
+}
+
 input DesProjectsRequirementsBlockFilterInput {
   "Requirements block IDs."
   blockIds: [String!]!
@@ -3957,6 +4052,18 @@ input DesRectangleInput {
   pos1: DesPosition2DInput!
   "Rectangle corner point 2."
   pos2: DesPosition2DInput!
+}
+
+"Input for releasing component datasheet."
+input DesReleaseComponentDatasheetInput {
+  "The datasheet name. Use null to be generated."
+  itemName: String
+  "The datasheet file"
+  file: DesReleaseComponentFileInput!
+  "The datasheet revision naming scheme identifier."
+  revisionNamingSchemeNodeId: ID!
+  "The datasheet life cycle definition identifier."
+  lifeCycleDefinitionNodeId: ID!
 }
 
 "Input for releasing component file."
@@ -3973,7 +4080,7 @@ input DesReleaseComponentInput {
   workspaceUrl: String!
   "Destination parent folder identifier for releasing a component. If omitted or empty, `componentReleaseFolder` is required."
   componentParentFolderId: ID
-  "New child folder name for releasing a component. If omitted or empty, `ComponentParentFolderId` is required."
+  "New child folder name for releasing a component. If omitted or empty, `componentParentFolderId` is required."
   componentReleaseFolder: String
   "When `componentReleaseFolder` is set, tells to use existing folder if any, otherwise create a new folder."
   useExistingComponentReleaseFolder: Boolean
@@ -4021,6 +4128,12 @@ input DesReleaseComponentInput {
   footprintLifeCycleDefinitionId: String
   "The footprint life cycle definition identifier."
   footprintLifeCycleDefinitionNodeId: ID
+  "Datasheets for component."
+  datasheets: [DesReleaseComponentDatasheetInput!]
+  "The datasheet folder path, existing or to be created."
+  datasheetReleaseFolder: String
+  "Naming scheme template for the datasheet folder."
+  datasheetReleaseFolderItemNamingSchemeTemplate: String
 }
 
 "Input for releasing a component template."
@@ -4079,7 +4192,7 @@ input DesRemoveComponentPartChoicesInput {
 input DesRemoveUsersFromGroupInput {
   "The group node ID."
   id: ID!
-  "User IDs."
+  "Workspace user identifiers."
   userIds: [String!]!
 }
 
@@ -4214,7 +4327,7 @@ input DesUpdateFolderPermissionInput {
   canModify: Boolean!
   "Scope of the permission."
   scope: DesPermissionScope!
-  "User identifier."
+  "Workspace user identifier."
   userId: String
   "Group identifier."
   groupId: ID
@@ -4230,6 +4343,16 @@ input DesUpdateFolderPermissionsInput {
   permissions: [DesUpdateFolderPermissionInput!]!
 }
 
+"Input to update footprint life cycle state."
+input DesUpdateFootprintLifeCycleStateInput {
+  "Footprint identifier."
+  footprintId: ID!
+  "Life cycle transition state identifier."
+  lifeCycleStateTransitionId: String!
+  "Comment."
+  comment: String
+}
+
 "Input for updating life cycle definition."
 input DesUpdateLifeCycleDefinitionInput {
   "Life cycle definition identifier. Defines which life cycle definition should be updated."
@@ -4238,14 +4361,24 @@ input DesUpdateLifeCycleDefinitionInput {
   lifeCycleDefinition: DesLifeCycleDefinitionInput!
 }
 
+"Input for updating project parameters."
+input DesUpdateProjectParametersInput {
+  "Project identifier."
+  projectId: ID!
+  "Replace all existing user-specific project parameters. By default parameters are appended to the existing list."
+  replaceExisting: Boolean
+  "Parameters to describe the project."
+  parameters: [DesProjectParameterInput!]!
+}
+
 "Input for updating project permission."
 input DesUpdateProjectPermissionInput {
+  "User identifier. Workspace user identifier should be used for the scope 'USER', global user identifier should be used for the scope 'GUEST'."
+  userId: String
   "Allows updating, deleting and creating when set, otherwise only read permissions will be allowed."
   canModify: Boolean!
   "Scope of the permission."
   scope: DesPermissionScope!
-  "User identifier."
-  userId: String
   "Group identifier."
   groupId: ID
 }
@@ -4278,11 +4411,11 @@ input DesUpdateRevisionNamingSchemeInput {
   name: String
   "If true, the revision naming scheme is only applied to objects that are controlled by that content type. Otherwise, content types are ignored."
   isControlledPerContentType: Boolean
-  "If `IsControlledPerContentType` is true, the list of content types for which this revision naming scheme is applicable."
+  "If `isControlledPerContentType` is true, the list of content types for which this revision naming scheme is applicable."
   contentTypes: [DesContentTypeKind!]
   "The list of numbering levels for this revision naming scheme. Maximum of 3 levels."
   levels: [DesUpdateRevisionNamingSchemeLevelInput!]
-  "The separator used between item ID and revision ID. Allowed characters are:  ,.-_"
+  "The separator used between item ID and revision ID. Allowed characters are: ',', '.', '-', '_'."
   itemRevisionSeparator: String
 }
 
@@ -4290,9 +4423,9 @@ input DesUpdateRevisionNamingSchemeInput {
 input DesUpdateRevisionNamingSchemeLevelInput {
   "The name of this revision naming level. In Altium Designer it is known as 'Caption'."
   name: String
-  "The minimum character length allowed for this revision naming scheme level"
+  "The minimum character length allowed for this revision naming scheme level."
   minimumWidth: Int
-  "The separator prefix character for this revision naming scheme level. Allowed characters are:  ,.-_"
+  "The separator prefix character for this revision naming scheme level. Allowed characters are: ',', '.', '-', '_'."
   levelSeparator: String
   "The naming policy for this revision naming scheme level."
   revisionNamingPolicy: DesRevisionNamingPolicy
@@ -4306,6 +4439,16 @@ input DesUpdateSettingInput {
   name: String!
   "The value that the setting should be replaced with."
   value: String!
+}
+
+"Input to update symbol life cycle state."
+input DesUpdateSymbolLifeCycleStateInput {
+  "Symbol identifier."
+  symbolId: ID!
+  "Life cycle transition state identifier."
+  lifeCycleStateTransitionId: String!
+  "Comment."
+  comment: String
 }
 
 "Input for updating a task comment."
@@ -4344,7 +4487,7 @@ input DesUpdateUserGroupInput {
 input DesUpdateUserInput {
   "Workspace URL."
   workspaceUrl: String!
-  "User identifier."
+  "Workspace user identifier."
   userId: String!
   "User first name."
   firstName: String
@@ -4424,6 +4567,14 @@ input DesWorkflowDefinitionFilterInput {
   createdBy: StringOperationFilterInput
   "The `DateTime` for the creation of this workflow definition."
   createdAt: DateTimeOperationFilterInput
+}
+
+"Filter workflows by a variable."
+input DesWorkflowFilterByVariableInput {
+  "Name of the variable."
+  name: String
+  "List of value prefixes."
+  valueMatchesOneOf: [String!]!
 }
 
 "A workflow manages the execution of a logical sequence of tasks."
@@ -4826,6 +4977,7 @@ enum DesParameterType {
 
 enum DesPermissionScope {
   USER
+  GUEST
   ANYONE
   ORGANISATION
   GROUP
@@ -4859,15 +5011,15 @@ enum DesPrimitiveShape {
 }
 
 enum DesRevisionNamingPolicy {
-  "Number whose sequence starts at 0"
+  "Number whose sequence starts at 0."
   NUMERIC_ZERO
-  "Number whose sequence starts at 1"
+  "Number whose sequence starts at 1."
   NUMERIC_ONE
-  "Upper case letters"
+  "Upper case letters."
   ALPHA_UPPER
-  "Lower case letters"
+  "Lower case letters."
   ALPHA_LOWER
-  "Revision letters per ASME Y14.35M standard: ABCDEFGHJKLMNPRTUVWY"
+  "Revision letters per ASME Y14.35M standard: ABCDEFGHJKLMNPRTUVWY."
   ASME_Y14_35M
 }
 
@@ -5091,6 +5243,19 @@ type SupImage {
   creditUrl: String!
 }
 
+"inStockAgg produces an InStockBucket with whether it is in stock or not + counts"
+type SupInStockBucket {
+  isInStock: Boolean!
+  count: Int
+}
+
+"cadLevelAgg produces a LevelBucket with level + displayName"
+type SupLevelBucket {
+  level: Int
+  displayName: String!
+  count: Int
+}
+
 "An offer is a specific buyable part from a distributor, with specific packaging, pricing, stock, moq."
 type SupOffer {
   "Cache ID"
@@ -5185,7 +5350,7 @@ type SupPart {
   "The average stock level at each distributor"
   avgAvail: Float!
   "Companies with Offers for this part"
-  sellers(includeBrokers: Boolean! = false authorizedOnly: Boolean! = false): [SupPartSeller!]!
+  sellers(includeBrokers: Boolean! = false authorizedOnly: Boolean! = false limit: Int start: Int): [SupPartSeller!]!
   "The estimated factory lead time in days derived from trusted distributor offers."
   estimatedFactoryLeadDays: Int
   "This part might be known by these alternate MPNs"
@@ -5256,8 +5421,8 @@ type SupPartResultSet {
   specsViewAttributeGroups: [SupAttributeGroup!]!
   "If an invalid query was modified or rejected, warnings indicate this fact to the user.  For example if query contained too many tokens, some tokens may be ignored."
   warnings: [String!]
-  "Perform aggregations on Spec values across multiple Attributes.\nYou *must* specify `attributeNames` for this field to be populated.\n`attributeNames` should be a list of Attribute.shortname values (e.g. `capacitance` or `voltageRatingDc`)"
-  specAggs("a list of Attribute.shortname values to aggregate on (e.g. `capacitance` or `voltageRatingDc`)" attributeNames: [String!]! "number of spec value buckets to return (default 10)" size: Int! = 10): [SupSpecAgg!]!
+  "Perform aggregations on Spec values across multiple Attributes.\nYou *must* specify `attributeNames` for this field to be populated.\n`attributeNames` should be a list of Attribute.shortname values (e.g. `capacitance` or `voltageRatingDc`)\n- You can set `attributeSelection=WITHSUGGESTED` to additionally include suggested attributes for aggregation\n- Alternatively, set `attributeSelection=ALL` to include all attributes for aggregation\n- To rely solely on suggested attributes, set `attributeSelection=WITHSUGGESTED` and `attributeNames=[]`"
+  specAggs("a list of Attribute.shortname values to aggregate on (e.g. `capacitance` or `voltageRatingDc`)" attributeNames: [String!]! "defines how attributes are selected for aggregation (default EXPLICIT)" attributeSelection: SupSpecAggsSelection! = EXPLICIT "number of spec value buckets to return (default 10)" size: Int! = 10): [SupSpecAgg!]!
   "Aggregate on manufacturers for this result set"
   manufacturerAgg("number of buckets to return (default 10)" size: Int! = 10): [SupCompanyBucket!]!
   "Aggregate on distributors for this result set"
@@ -5266,6 +5431,10 @@ type SupPartResultSet {
   categoryAgg("number of buckets to return (default 10)" size: Int! = 10): [SupCategoryBucket!]!
   "Aggregate on the availability of CAD models for the result set"
   cadAgg: [SupCadBucket!]!
+  "Aggregate on CAD levels for this result set"
+  cadLevelAgg: [SupLevelBucket!]!
+  "Aggregate on whether the parts are in stock for this result set"
+  inStockAgg: [SupInStockBucket!]!
   "Categories that are determined by search algo to be related to the search term.  Useful for suggesting a Category filter in the search UI."
   suggestedCategories: [SupCategoryBucket!]!
   "Attributes that are determined by search algo to be related to the search term.  Useful for suggesting most relevant filters in the search UI."
@@ -5287,7 +5456,7 @@ type SupPartSeller {
   "Distributor's country"
   country: String
   "List of offers.  Multiple offers may exist in different packaging.\nWhile multiple geo-targeted offers may exist, currently the API only exposes one geo-targeted offer at a time based on `country` parameter.\nPlease contact us if you have a need to see all geo-targeted offer variants."
-  offers: [SupOffer!]!
+  offers(priceBreaks: [Int!]): [SupOffer!]!
   "True if the distributor is an authorized distributor for this manufacturer.  See [authorized](https:\/\/octopart.com\/authorized) for more information."
   isAuthorized: Boolean!
   "True if the distributor is a Non-Authorized Dealer.  See [authorized](https:\/\/octopart.com\/authorized) for more information."
@@ -5481,6 +5650,12 @@ enum SupRole {
 enum SupSortDirection {
   asc
   desc
+}
+
+enum SupSpecAggsSelection {
+  EXPLICIT
+  WITH_SUGGESTED
+  ALL
 }
 
 interface ManOrderEvent {

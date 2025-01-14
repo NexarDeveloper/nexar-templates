@@ -4,7 +4,7 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.Server" Version="13.9.11" />
-    <PackageReference Include="StrawberryShake.Transport.Http" Version="13.9.11" />
+    <PackageReference Include="StrawberryShake.Server" Version="14.3.0" />
+    <PackageReference Include="StrawberryShake.Transport.Http" Version="14.3.0" />
   </ItemGroup>
 </Project>
